@@ -13,7 +13,7 @@ export function NameStep({
   const submit = () => onDone(name.trim().slice(0, 40));
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center justify-center gap-10 bg-gradient-to-r from-[#1b1b1f] to-[#2a1b3d]">
+    <div className="flex flex-col items-center gap-10">
       <IntroGlow className="left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" />
       <p className="w-[640px] text-center text-[24px] text-[#a0a5b5]">
         Your name
