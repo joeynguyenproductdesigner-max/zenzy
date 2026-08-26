@@ -44,7 +44,7 @@ export const musicTracks: MediaItem[] = [
 export const ambientSounds: MediaItem[] = [
   {
     id: "rain-with-thunderstorm",
-    name: "Rain with Thunderstorm",
+    name: "Thunderstorm",
     url: "https://res.cloudinary.com/suha2h16/video/upload/f_auto,q_auto/v1787644368/masterandmargarita-rain-with-thunderstorm-420333.mp3",
   },
   {
