@@ -26,49 +26,54 @@ const SOUND_EMOJI: Record<string, string> = {
 
 type Tab = "sounds" | "music";
 
-function useLoopingAudio(url: string | null, volume: number) {
+function useLoopingAudio(volume: number) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
-    if (!audioRef.current) {
-      audioRef.current = new Audio();
-      audioRef.current.loop = true;
-    }
-    const audio = audioRef.current;
-    if (url) {
-      audio.src = url;
-      audio.volume = volume;
-      audio.play().catch(() => setIsPlaying(false));
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- reflects the outcome of the play() call kicked off just above, not derivable during render
-      setIsPlaying(true);
-    } else {
-      audio.pause();
-      setIsPlaying(false);
-    }
     return () => {
-      audio.pause();
+      audioRef.current?.pause();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- volume is applied by the effect below without restarting playback
-  }, [url]);
+  }, []);
 
   useEffect(() => {
     if (audioRef.current) audioRef.current.volume = volume;
   }, [volume]);
 
+  // Called directly from a click handler (never from an effect) so the
+  // play() call stays inside the user gesture — Safari in particular
+  // silently blocks audio.play() once it's a tick removed from the click.
+  const play = (url: string) => {
+    if (!audioRef.current) {
+      audioRef.current = new Audio();
+      audioRef.current.loop = true;
+    }
+    const audio = audioRef.current;
+    audio.src = url;
+    audio.volume = volume;
+    audio
+      .play()
+      .then(() => setIsPlaying(true))
+      .catch(() => setIsPlaying(false));
+  };
+
+  const stop = () => {
+    audioRef.current?.pause();
+    setIsPlaying(false);
+  };
+
   const togglePlayback = () => {
     const audio = audioRef.current;
-    if (!audio || !url) return;
+    if (!audio || !audio.src) return;
     if (audio.paused) {
-      audio.play().catch(() => {});
-      setIsPlaying(true);
+      audio.play().then(() => setIsPlaying(true)).catch(() => {});
     } else {
       audio.pause();
       setIsPlaying(false);
     }
   };
 
-  return { isPlaying, togglePlayback };
+  return { isPlaying, play, stop, togglePlayback };
 }
 
 export function SoundDialog({ open }: { open: boolean }) {
@@ -90,11 +95,8 @@ export function SoundDialog({ open }: { open: boolean }) {
     0.7
   );
 
-  const soundUrl = ambientSounds.find((s) => s.id === selectedSoundId)?.url ?? null;
-  const musicUrl = musicTracks.find((m) => m.id === selectedMusicId)?.url ?? null;
-
-  const sound = useLoopingAudio(soundUrl, soundVolume);
-  const music = useLoopingAudio(musicUrl, musicVolume);
+  const sound = useLoopingAudio(soundVolume);
+  const music = useLoopingAudio(musicVolume);
 
   if (!open) return null;
 
@@ -103,20 +105,27 @@ export function SoundDialog({ open }: { open: boolean }) {
   const setActiveSelectedId = tab === "sounds" ? setSelectedSoundId : setSelectedMusicId;
   const active = tab === "sounds" ? sound : music;
 
-  const toggleItem = (id: string) => {
-    setActiveSelectedId((current) => (current === id ? null : id));
+  const toggleItem = (item: MediaItem) => {
+    if (activeSelectedId === item.id) {
+      setActiveSelectedId(null);
+      active.stop();
+    } else {
+      setActiveSelectedId(item.id);
+      active.play(item.url);
+    }
   };
 
   const shuffle = () => {
     const pool = activeList.filter((item) => item.id !== activeSelectedId);
     const pick = pool[Math.floor(Math.random() * pool.length)] ?? activeList[0];
     setActiveSelectedId(pick.id);
+    active.play(pick.url);
   };
 
   return (
     <DialogPanel>
       <div className="flex w-full items-center justify-between">
-        <div className="flex items-center gap-6 text-[20px]">
+        <div className="flex items-center gap-6 text-[32px]">
           <button
             type="button"
             onClick={() => setTab("sounds")}
@@ -163,11 +172,11 @@ export function SoundDialog({ open }: { open: boolean }) {
                 key={item.id}
                 role="button"
                 tabIndex={0}
-                onClick={() => toggleItem(item.id)}
+                onClick={() => toggleItem(item)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    toggleItem(item.id);
+                    toggleItem(item);
                   }
                 }}
                 className={`flex cursor-pointer flex-col gap-2 rounded-xl bg-[#13131b]/50 px-3 py-2 transition ${
@@ -202,7 +211,7 @@ export function SoundDialog({ open }: { open: boolean }) {
               >
                 <button
                   type="button"
-                  onClick={() => toggleItem(item.id)}
+                  onClick={() => toggleItem(item)}
                   className="flex flex-1 items-center gap-4 text-left"
                 >
                   <div className="flex size-[56px] shrink-0 items-center justify-center rounded-xl bg-white/10 text-xl">
