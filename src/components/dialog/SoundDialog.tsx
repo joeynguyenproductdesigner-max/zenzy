@@ -24,8 +24,11 @@ const SOUND_EMOJI: Record<string, string> = {
   "airplane-cabin": "✈️",
 };
 
+const DEFAULT_VOLUME = 0.7;
+
 type Tab = "sounds" | "music";
 
+// Single-track player, used for Music — only one track plays at a time.
 function useLoopingAudio(volume: number) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -76,48 +79,100 @@ function useLoopingAudio(volume: number) {
   return { isPlaying, play, stop, togglePlayback };
 }
 
-export function SoundDialog({ open }: { open: boolean }) {
-  const [tab, setTab] = useState<Tab>("sounds");
-  const [selectedSoundId, setSelectedSoundId] = useLocalStorage<string | null>(
-    "zenzy:sound",
-    null
+// Multi-track mixer, used for Sounds — any number of ambient sounds can
+// play together, each with its own independent volume.
+function useSoundMixer() {
+  const audiosRef = useRef<Map<string, HTMLAudioElement>>(new Map());
+  const [activeIds, setActiveIds] = useLocalStorage<string[]>("zenzy:sounds", []);
+  const [volumes, setVolumes] = useLocalStorage<Record<string, number>>(
+    "zenzy:sound-volumes",
+    {}
   );
-  const [selectedMusicId, setSelectedMusicId] = useLocalStorage<string | null>(
-    "zenzy:music",
-    null
-  );
-  const [soundVolume, setSoundVolume] = useLocalStorage<number>(
-    "zenzy:sound-volume",
-    0.7
-  );
-  const [musicVolume, setMusicVolume] = useLocalStorage<number>(
-    "zenzy:music-volume",
-    0.7
-  );
+  const [isPlaying, setIsPlaying] = useState(false);
 
-  const sound = useLoopingAudio(soundVolume);
-  const music = useLoopingAudio(musicVolume);
+  useEffect(() => {
+    const audios = audiosRef.current;
+    return () => {
+      audios.forEach((audio) => audio.pause());
+    };
+  }, []);
 
-  if (!open) return null;
+  // Called directly from a click handler — see note on useLoopingAudio above.
+  const toggle = (id: string, url: string) => {
+    const existing = audiosRef.current.get(id);
+    if (existing) {
+      existing.pause();
+      audiosRef.current.delete(id);
+      setActiveIds((prev) => prev.filter((activeId) => activeId !== id));
+      return;
+    }
+    const audio = new Audio(url);
+    audio.loop = true;
+    audio.volume = volumes[id] ?? DEFAULT_VOLUME;
+    audio.play().catch(() => {});
+    audiosRef.current.set(id, audio);
+    setActiveIds((prev) => [...prev, id]);
+    setIsPlaying(true);
+  };
 
-  const activeSelectedId = tab === "sounds" ? selectedSoundId : selectedMusicId;
-  const setActiveSelectedId = tab === "sounds" ? setSelectedSoundId : setSelectedMusicId;
-  const active = tab === "sounds" ? sound : music;
+  const setVolume = (id: string, volume: number) => {
+    setVolumes((prev) => ({ ...prev, [id]: volume }));
+    const audio = audiosRef.current.get(id);
+    if (audio) audio.volume = volume;
+  };
 
-  const toggleItem = (item: MediaItem) => {
-    if (activeSelectedId === item.id) {
-      setActiveSelectedId(null);
-      active.stop();
+  const togglePlayback = () => {
+    if (activeIds.length === 0) return;
+    if (isPlaying) {
+      audiosRef.current.forEach((audio) => audio.pause());
+      setIsPlaying(false);
     } else {
-      setActiveSelectedId(item.id);
-      active.play(item.url);
+      audiosRef.current.forEach((audio) => audio.play().catch(() => {}));
+      setIsPlaying(true);
     }
   };
 
   const clearAll = () => {
-    setSelectedSoundId(null);
+    audiosRef.current.forEach((audio) => audio.pause());
+    audiosRef.current.clear();
+    setActiveIds([]);
+    setIsPlaying(false);
+  };
+
+  return { activeIds, volumes, toggle, setVolume, togglePlayback, isPlaying, clearAll };
+}
+
+export function SoundDialog({ open }: { open: boolean }) {
+  const [tab, setTab] = useState<Tab>("sounds");
+  const [selectedMusicId, setSelectedMusicId] = useLocalStorage<string | null>(
+    "zenzy:music",
+    null
+  );
+  const [musicVolume, setMusicVolume] = useLocalStorage<number>(
+    "zenzy:music-volume",
+    DEFAULT_VOLUME
+  );
+
+  const soundMixer = useSoundMixer();
+  const music = useLoopingAudio(musicVolume);
+
+  if (!open) return null;
+
+  const active = tab === "sounds" ? soundMixer : music;
+
+  const toggleMusic = (item: MediaItem) => {
+    if (selectedMusicId === item.id) {
+      setSelectedMusicId(null);
+      music.stop();
+    } else {
+      setSelectedMusicId(item.id);
+      music.play(item.url);
+    }
+  };
+
+  const clearAll = () => {
+    soundMixer.clearAll();
     setSelectedMusicId(null);
-    sound.stop();
     music.stop();
   };
 
@@ -165,17 +220,17 @@ export function SoundDialog({ open }: { open: boolean }) {
       {tab === "sounds" ? (
         <div className="grid h-[448px] grid-cols-4 grid-rows-4 gap-3">
           {ambientSounds.map((item) => {
-            const selected = selectedSoundId === item.id;
+            const selected = soundMixer.activeIds.includes(item.id);
             return (
               <div
                 key={item.id}
                 role="button"
                 tabIndex={0}
-                onClick={() => toggleItem(item)}
+                onClick={() => soundMixer.toggle(item.id, item.url)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    toggleItem(item);
+                    soundMixer.toggle(item.id, item.url);
                   }
                 }}
                 className={`flex cursor-pointer flex-col gap-2 rounded-xl bg-[#13131b]/50 px-3 py-2 transition ${
@@ -191,7 +246,10 @@ export function SoundDialog({ open }: { open: boolean }) {
                   </span>
                 </div>
                 {selected && (
-                  <VolumeSlider value={soundVolume} onChange={setSoundVolume} />
+                  <VolumeSlider
+                    value={soundMixer.volumes[item.id] ?? DEFAULT_VOLUME}
+                    onChange={(v) => soundMixer.setVolume(item.id, v)}
+                  />
                 )}
               </div>
             );
@@ -210,7 +268,7 @@ export function SoundDialog({ open }: { open: boolean }) {
               >
                 <button
                   type="button"
-                  onClick={() => toggleItem(item)}
+                  onClick={() => toggleMusic(item)}
                   className="flex flex-1 items-center gap-4 text-left"
                 >
                   <div className="flex size-[56px] shrink-0 items-center justify-center rounded-xl bg-white/10 text-xl">
