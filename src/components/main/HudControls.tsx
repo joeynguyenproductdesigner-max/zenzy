@@ -1,8 +1,10 @@
 "use client";
 
-import { AudioWaveform, Image as ImageIcon, Maximize } from "lucide-react";
 import { useEffect, useState } from "react";
 import { DialogIconButton } from "@/components/dialog/DialogPanel";
+import { ThemeIcon } from "@/icons/ThemeIcon";
+import { MusicIcon } from "@/icons/MusicIcon";
+import { MaximizeIcon } from "@/icons/MaximizeIcon";
 
 export function HudControls({
   onToggleThemes,
@@ -39,14 +41,14 @@ export function HudControls({
           active={themesOpen}
           onClick={onToggleThemes}
         >
-          <ImageIcon size={19} strokeWidth={2} color="#FFFFFF" />
+          <ThemeIcon size={19.2} />
         </DialogIconButton>
         <DialogIconButton
           label="Sounds/Music"
           active={soundsOpen}
           onClick={onToggleSounds}
         >
-          <AudioWaveform size={19} strokeWidth={2} color="#FFFFFF" />
+          <MusicIcon size={24} />
         </DialogIconButton>
       </div>
       <DialogIconButton
@@ -54,7 +56,7 @@ export function HudControls({
         active={fullscreen}
         onClick={toggleFullscreen}
       >
-        <Maximize size={19} strokeWidth={2} color="#FFFFFF" />
+        <MaximizeIcon size={19.5} />
       </DialogIconButton>
     </div>
   );

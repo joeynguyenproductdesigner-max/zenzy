@@ -1,7 +1,8 @@
-import { PictureInPicture, RefreshCw } from "lucide-react";
 import { TimeTabs } from "./TimeTabs";
 import { formatCountdown } from "@/lib/work-durations";
 import type { SessionStatus } from "@/lib/use-work-session";
+import { RefreshCwIcon } from "@/icons/RefreshCwIcon";
+import { PictureInPictureIcon } from "@/icons/PictureInPictureIcon";
 
 export function ChronoView({
   status,
@@ -69,7 +70,7 @@ export function ChronoView({
             aria-label="Reset"
             className="flex size-11 items-center justify-center rounded-full border border-white/40 bg-white/20 text-white hover:bg-white/30"
           >
-            <RefreshCw size={16} strokeWidth={2} color="#FFFFFF" />
+            <RefreshCwIcon size={16} />
           </button>
         )}
         <button
@@ -79,7 +80,7 @@ export function ChronoView({
           // TODO(Sprint 7): wire Document Picture-in-Picture API (document.documentPictureInPicture).
           className="flex size-11 items-center justify-center rounded-full border border-white/40 bg-white/20 text-white hover:bg-white/30 opacity-60"
         >
-          <PictureInPicture size={16} strokeWidth={2} color="#FFFFFF" />
+          <PictureInPictureIcon size={16} />
         </button>
       </div>
     </div>
