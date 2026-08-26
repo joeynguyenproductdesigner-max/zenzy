@@ -100,7 +100,6 @@ export function SoundDialog({ open }: { open: boolean }) {
 
   if (!open) return null;
 
-  const activeList: MediaItem[] = tab === "sounds" ? ambientSounds : musicTracks;
   const activeSelectedId = tab === "sounds" ? selectedSoundId : selectedMusicId;
   const setActiveSelectedId = tab === "sounds" ? setSelectedSoundId : setSelectedMusicId;
   const active = tab === "sounds" ? sound : music;
@@ -115,11 +114,11 @@ export function SoundDialog({ open }: { open: boolean }) {
     }
   };
 
-  const shuffle = () => {
-    const pool = activeList.filter((item) => item.id !== activeSelectedId);
-    const pick = pool[Math.floor(Math.random() * pool.length)] ?? activeList[0];
-    setActiveSelectedId(pick.id);
-    active.play(pick.url);
+  const clearAll = () => {
+    setSelectedSoundId(null);
+    setSelectedMusicId(null);
+    sound.stop();
+    music.stop();
   };
 
   return (
@@ -157,7 +156,7 @@ export function SoundDialog({ open }: { open: boolean }) {
               <Play className="size-5" />
             )}
           </DialogIconButton>
-          <DialogIconButton onClick={shuffle} label="Shuffle">
+          <DialogIconButton onClick={clearAll} label="Clear all sounds">
             <RefreshCw className="size-5" />
           </DialogIconButton>
         </div>
