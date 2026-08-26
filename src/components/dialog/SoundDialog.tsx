@@ -168,7 +168,9 @@ export function SoundDialog({ open }: { open: boolean }) {
                 <button
                   type="button"
                   onClick={() => toggleItem(item.id)}
-                  className="flex w-full flex-1 flex-col items-center justify-center gap-2"
+                  className={`flex w-full flex-1 flex-col items-center gap-2 ${
+                    selected ? "justify-start" : "justify-center"
+                  }`}
                 >
                   <span className="text-xl">{SOUND_EMOJI[item.id] ?? "🔊"}</span>
                   <span className="line-clamp-2 text-center text-[12px] font-semibold text-white">
@@ -183,7 +185,7 @@ export function SoundDialog({ open }: { open: boolean }) {
           })}
         </div>
       ) : (
-        <div className="flex h-[448px] flex-col gap-3 overflow-y-auto">
+        <div className="flex h-[448px] flex-col gap-3 overflow-y-auto p-1">
           {musicTracks.map((item) => {
             const selected = selectedMusicId === item.id;
             return (
