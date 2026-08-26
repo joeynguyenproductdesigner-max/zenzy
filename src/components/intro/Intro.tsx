@@ -11,10 +11,14 @@ import { NameStep } from "./NameStep";
 // Nền (gradient) là 1 layer riêng, đứng yên xuyên suốt cả chuỗi Intro —
 // chỉ layer content (chữ/glow/form) mới crossfade, để tránh giật/lag do
 // tắt-bật cả màn hình mỗi lần chuyển bước.
+//
+// Riêng "Zenzy" (logo) -> "Zenzy" + tagline: không crossfade (chữ Zenzy
+// không tắt đi), mà đẩy "Zenzy" lên bằng cách mở rộng chiều cao của dòng
+// tagline bên dưới (CSS grid-rows 0fr -> 1fr), tagline fade-in cùng lúc.
 const HOLD_MS = 600;
 const FADE_MS = 1000;
 
-const STEPS = ["welcome", "logo", "tagline", "name"] as const;
+const STEPS = ["welcome", "brand", "name"] as const;
 
 export function Intro({
   onComplete,
@@ -23,13 +27,26 @@ export function Intro({
 }) {
   const [stepIndex, setStepIndex] = useState(0);
   const [fading, setFading] = useState(false);
+  const [taglineShown, setTaglineShown] = useState(false);
   const step = STEPS[stepIndex];
 
   useEffect(() => {
-    if (step === "name") return;
+    if (step !== "welcome") return;
     const hold = setTimeout(() => setFading(true), HOLD_MS);
     return () => clearTimeout(hold);
   }, [step]);
+
+  useEffect(() => {
+    if (step !== "brand") return;
+    const reveal = setTimeout(() => setTaglineShown(true), HOLD_MS);
+    return () => clearTimeout(reveal);
+  }, [step]);
+
+  useEffect(() => {
+    if (step !== "brand" || !taglineShown) return;
+    const hold = setTimeout(() => setFading(true), HOLD_MS);
+    return () => clearTimeout(hold);
+  }, [step, taglineShown]);
 
   useEffect(() => {
     if (!fading) return;
@@ -56,20 +73,30 @@ export function Intro({
             </p>
           </>
         )}
-        {step === "logo" && (
-          <>
-            <IntroGlow className="left-[140px] -top-[240px]" />
-            <p className="w-[640px] text-center text-[80px] font-bold text-white">
-              Zenzy
-            </p>
-          </>
-        )}
-        {step === "tagline" && (
+        {step === "brand" && (
           <>
             <IntroGlow className="left-[80px] top-[10px]" />
             <div className="flex w-[640px] flex-col items-center text-center">
               <p className="text-[80px] font-bold text-white">Zenzy</p>
-              <p className="text-[24px] text-[#a0a5b5]">Zen for your eyes</p>
+              <div
+                className="grid overflow-hidden transition-[grid-template-rows] ease-linear"
+                style={{
+                  transitionDuration: `${FADE_MS}ms`,
+                  gridTemplateRows: taglineShown ? "1fr" : "0fr",
+                }}
+              >
+                <div className="overflow-hidden">
+                  <p
+                    className="text-[24px] text-[#a0a5b5] transition-opacity ease-linear"
+                    style={{
+                      transitionDuration: `${FADE_MS}ms`,
+                      opacity: taglineShown ? 1 : 0,
+                    }}
+                  >
+                    Zen for your eyes
+                  </p>
+                </div>
+              </div>
             </div>
           </>
         )}
