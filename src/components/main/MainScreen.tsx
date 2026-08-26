@@ -95,7 +95,7 @@ export function MainScreen() {
 
       {(themesOpen || soundsOpen) && (
         <div
-          className="absolute inset-0 z-10 flex items-center justify-center bg-black/40"
+          className="absolute inset-0 z-10 flex items-center justify-end bg-black/40 pr-16"
           onClick={() => {
             setThemesOpen(false);
             setSoundsOpen(false);
