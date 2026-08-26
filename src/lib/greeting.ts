@@ -18,7 +18,10 @@ export function getTimeOfDayGreeting(hour: number): Greeting {
       subtitle: "Wrapping up, one blink at a time.",
     };
   }
-  return { title: "Still up?", subtitle: "Don't forget to rest your eyes too." };
+  return {
+    title: "Still up",
+    subtitle: "Don't forget to rest your eyes too.",
+  };
 }
 
 export function greetingWithName(greeting: Greeting, name?: string): string {
