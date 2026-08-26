@@ -47,7 +47,7 @@ export function MainScreen() {
           <p className="text-[48px] font-black">Zenzy</p>
           <p className="text-[16px] text-white/80">Zen for your eyes</p>
         </div>
-        <p className="w-80 text-right text-[20px] font-medium italic text-white">
+        <p className="whitespace-nowrap text-right text-[20px] font-medium italic text-white">
           &ldquo;A gentle reminder to rest your eyes.&rdquo;
         </p>
       </div>
