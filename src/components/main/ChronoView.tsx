@@ -78,7 +78,7 @@ export function ChronoView({
           aria-label="Picture in picture"
           title="Coming in a later sprint"
           // TODO(Sprint 7): wire Document Picture-in-Picture API (document.documentPictureInPicture).
-          className="flex size-11 items-center justify-center rounded-full border border-white/40 bg-white/20 text-white hover:bg-white/30 opacity-60"
+          className="flex size-11 items-center justify-center rounded-full border border-white/40 bg-white/20 text-white hover:bg-white/30"
         >
           <PictureInPictureIcon size={16} />
         </button>
