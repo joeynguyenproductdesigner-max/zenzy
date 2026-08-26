@@ -125,13 +125,13 @@ export function SoundDialog({ open }: { open: boolean }) {
   return (
     <DialogPanel>
       <div className="flex w-full items-center justify-between">
-        <div className="flex items-center gap-6 text-[32px]">
+        <div className="flex items-center gap-6 text-[28px]">
           <button
             type="button"
             onClick={() => setTab("sounds")}
             className={
               tab === "sounds"
-                ? "font-black text-white underline"
+                ? "font-black text-white"
                 : "font-bold text-[#a0a5b5]"
             }
           >
@@ -142,7 +142,7 @@ export function SoundDialog({ open }: { open: boolean }) {
             onClick={() => setTab("music")}
             className={
               tab === "music"
-                ? "font-black text-white underline"
+                ? "font-black text-white"
                 : "font-bold text-[#a0a5b5]"
             }
           >
