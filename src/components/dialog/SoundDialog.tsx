@@ -218,7 +218,7 @@ export function SoundDialog({ open }: { open: boolean }) {
       </div>
 
       {tab === "sounds" ? (
-        <div className="grid h-[448px] grid-cols-4 grid-rows-4 gap-3">
+        <div className="grid min-h-0 flex-1 grid-cols-4 grid-rows-4 gap-3">
           {ambientSounds.map((item) => {
             const selected = soundMixer.activeIds.includes(item.id);
             return (
@@ -256,7 +256,7 @@ export function SoundDialog({ open }: { open: boolean }) {
           })}
         </div>
       ) : (
-        <div className="flex h-[448px] flex-col gap-3 overflow-y-auto p-1">
+        <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-1">
           {musicTracks.map((item) => {
             const selected = selectedMusicId === item.id;
             return (

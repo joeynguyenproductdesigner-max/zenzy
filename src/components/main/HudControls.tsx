@@ -48,7 +48,7 @@ export function HudControls({
           active={soundsOpen}
           onClick={onToggleSounds}
         >
-          <MusicIcon size={24} />
+          <MusicIcon size={19.2} />
         </DialogIconButton>
       </div>
       <DialogIconButton

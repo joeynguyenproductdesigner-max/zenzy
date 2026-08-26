@@ -16,7 +16,7 @@ export function ThemeDialog({ open }: { open: boolean }) {
   return (
     <DialogPanel>
       <p className="text-[32px] font-black text-white">Themes</p>
-      <div className="grid max-h-[min(420px,calc(100vh-280px))] grid-cols-2 gap-x-3 gap-y-4 overflow-y-auto p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="grid min-h-0 flex-1 grid-cols-2 gap-x-3 gap-y-4 overflow-y-auto p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {themeBackgrounds.map((theme) => (
           <button
             key={theme.id}
