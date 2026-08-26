@@ -67,9 +67,9 @@ export function ChronoView({
             type="button"
             onClick={onReset}
             aria-label="Reset"
-            className="flex size-11 items-center justify-center rounded-full border border-white/40 bg-white/30 text-white hover:bg-white/50"
+            className="flex size-11 items-center justify-center rounded-full border border-white/40 bg-white/20 text-white hover:bg-white/30"
           >
-            <RefreshCw size={16} />
+            <RefreshCw size={16} strokeWidth={2} color="#FFFFFF" />
           </button>
         )}
         <button
@@ -77,9 +77,9 @@ export function ChronoView({
           aria-label="Picture in picture"
           title="Coming in a later sprint"
           // TODO(Sprint 7): wire Document Picture-in-Picture API (document.documentPictureInPicture).
-          className="flex size-11 items-center justify-center rounded-full border border-white/40 bg-white/30 text-white hover:bg-white/50 opacity-60"
+          className="flex size-11 items-center justify-center rounded-full border border-white/40 bg-white/20 text-white hover:bg-white/30 opacity-60"
         >
-          <PictureInPicture size={16} />
+          <PictureInPicture size={16} strokeWidth={2} color="#FFFFFF" />
         </button>
       </div>
     </div>

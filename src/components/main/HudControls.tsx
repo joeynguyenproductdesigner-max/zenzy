@@ -39,14 +39,14 @@ export function HudControls({
           active={themesOpen}
           onClick={onToggleThemes}
         >
-          <ImageIcon size={19} />
+          <ImageIcon size={19} strokeWidth={2} color="#FFFFFF" />
         </DialogIconButton>
         <DialogIconButton
           label="Sounds/Music"
           active={soundsOpen}
           onClick={onToggleSounds}
         >
-          <AudioWaveform size={19} />
+          <AudioWaveform size={19} strokeWidth={2} color="#FFFFFF" />
         </DialogIconButton>
       </div>
       <DialogIconButton
@@ -54,7 +54,7 @@ export function HudControls({
         active={fullscreen}
         onClick={toggleFullscreen}
       >
-        <Maximize size={19} />
+        <Maximize size={19} strokeWidth={2} color="#FFFFFF" />
       </DialogIconButton>
     </div>
   );
