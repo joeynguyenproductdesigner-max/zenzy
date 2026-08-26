@@ -24,8 +24,8 @@ export function DialogIconButton({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className={`flex items-center justify-center rounded-lg border border-white/30 p-2 text-white transition ${
-        active ? "bg-white/30" : "bg-white/5 hover:bg-white/15"
+      className={`flex items-center justify-center rounded-lg border border-white/40 p-2 text-white transition ${
+        active ? "bg-white/50" : "bg-white/30 hover:bg-white/50"
       }`}
     >
       {children}

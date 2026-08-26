@@ -22,7 +22,7 @@ export function TimeTabs({
             className={`rounded-[20px] px-4 py-2 text-[16px] whitespace-nowrap transition ${
               active
                 ? "bg-[#5e3bee] font-semibold text-white"
-                : "border border-white/20 bg-white/10 text-white disabled:opacity-70"
+                : "border border-white/40 bg-white/30 text-white hover:bg-white/50 disabled:opacity-70 disabled:hover:bg-white/30"
             } ${disabled && !active ? "cursor-not-allowed" : ""}`}
           >
             {minutes} mins
