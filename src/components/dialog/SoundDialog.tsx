@@ -155,20 +155,20 @@ export function SoundDialog({ open }: { open: boolean }) {
       </div>
 
       {tab === "sounds" ? (
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid h-[448px] grid-cols-4 grid-rows-4 gap-3">
           {ambientSounds.map((item) => {
             const selected = selectedSoundId === item.id;
             return (
               <div
                 key={item.id}
-                className={`flex aspect-square flex-col items-center justify-center gap-2 rounded-xl bg-[#13131b]/50 p-3 transition ${
-                  selected ? "border border-[#8a8796]/50" : ""
+                className={`flex flex-col gap-2 rounded-xl bg-[#13131b]/50 px-3 py-2 transition ${
+                  selected ? "ring-2 ring-[#5e3bee]" : ""
                 }`}
               >
                 <button
                   type="button"
                   onClick={() => toggleItem(item.id)}
-                  className="flex flex-col items-center gap-2"
+                  className="flex w-full flex-1 flex-col items-center justify-center gap-2"
                 >
                   <span className="text-xl">{SOUND_EMOJI[item.id] ?? "🔊"}</span>
                   <span className="line-clamp-2 text-center text-[12px] font-semibold text-white">
@@ -183,14 +183,14 @@ export function SoundDialog({ open }: { open: boolean }) {
           })}
         </div>
       ) : (
-        <div className="flex max-h-[448px] flex-col gap-3 overflow-y-auto">
+        <div className="flex h-[448px] flex-col gap-3 overflow-y-auto">
           {musicTracks.map((item) => {
             const selected = selectedMusicId === item.id;
             return (
               <div
                 key={item.id}
-                className={`flex items-center gap-4 rounded-xl bg-[#13131b]/50 p-3 transition ${
-                  selected ? "border border-[#8a8796]/50" : "border border-[#222430]"
+                className={`flex items-center gap-4 rounded-xl border bg-[#13131b]/50 p-3 transition ${
+                  selected ? "border-transparent ring-2 ring-[#5e3bee]" : "border-[#222430]"
                 }`}
               >
                 <button
