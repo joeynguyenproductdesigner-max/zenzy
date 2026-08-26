@@ -161,22 +161,27 @@ export function SoundDialog({ open }: { open: boolean }) {
             return (
               <div
                 key={item.id}
-                className={`flex flex-col gap-2 rounded-xl bg-[#13131b]/50 px-3 py-2 transition ${
-                  selected ? "ring-2 ring-[#5e3bee]" : ""
+                role="button"
+                tabIndex={0}
+                onClick={() => toggleItem(item.id)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    toggleItem(item.id);
+                  }
+                }}
+                className={`flex cursor-pointer flex-col gap-2 rounded-xl bg-[#13131b]/50 px-3 py-2 transition ${
+                  selected ? "justify-start ring-2 ring-[#5e3bee]" : "justify-center"
                 }`}
               >
-                <button
-                  type="button"
-                  onClick={() => toggleItem(item.id)}
-                  className={`flex w-full flex-1 flex-col items-center gap-2 ${
-                    selected ? "justify-start" : "justify-center"
-                  }`}
-                >
-                  <span className="text-xl">{SOUND_EMOJI[item.id] ?? "🔊"}</span>
-                  <span className="line-clamp-2 text-center text-[12px] font-semibold text-white">
+                <div className="flex h-[56px] w-full flex-col items-center justify-center gap-1">
+                  <span className="shrink-0 text-[20px] leading-none">
+                    {SOUND_EMOJI[item.id] ?? "🔊"}
+                  </span>
+                  <span className="line-clamp-2 shrink-0 text-center text-[12px] font-semibold leading-[14px] text-white">
                     {item.name}
                   </span>
-                </button>
+                </div>
                 {selected && (
                   <VolumeSlider value={soundVolume} onChange={setSoundVolume} />
                 )}
