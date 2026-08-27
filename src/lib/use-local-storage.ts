@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export function useLocalStorage<T>(key: string, initialValue: T) {
   const [value, setValue] = useState<T>(initialValue);
-  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     const stored = window.localStorage.getItem(key);
@@ -16,13 +15,25 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
         // Ignore corrupt stored value, keep initialValue.
       }
     }
-    setHydrated(true);
   }, [key]);
 
-  useEffect(() => {
-    if (!hydrated) return;
-    window.localStorage.setItem(key, JSON.stringify(value));
-  }, [key, value, hydrated]);
+  // Persists synchronously (not via a separate effect) so that a value
+  // written by one component is immediately visible to any other
+  // component reading the same key from localStorage right after —
+  // e.g. Intro writes zenzy:name and flips zenzy:onboarded in the same
+  // handler, and GreetingHeader (a different useLocalStorage instance)
+  // mounts fresh right after and must see the name that was "just" set.
+  const setAndPersist = useCallback(
+    (next: T | ((prev: T) => T)) => {
+      setValue((prev) => {
+        const resolved =
+          typeof next === "function" ? (next as (p: T) => T)(prev) : next;
+        window.localStorage.setItem(key, JSON.stringify(resolved));
+        return resolved;
+      });
+    },
+    [key]
+  );
 
-  return [value, setValue] as const;
+  return [value, setAndPersist] as const;
 }
