@@ -17,6 +17,9 @@ import { NameStep } from "./NameStep";
 // tagline bên dưới (CSS grid-rows 0fr -> 1fr), tagline fade-in cùng lúc.
 const HOLD_MS = 600;
 const FADE_MS = 1000;
+// Sau khi tagline hiện xong, dừng lâu hơn mốc hold thường (1s thay vì
+// 600ms) để người dùng kịp đọc "Zen for your eyes" trước khi qua màn Name.
+const TAGLINE_HOLD_MS = 1000;
 
 const STEPS = ["welcome", "brand", "name"] as const;
 
@@ -44,7 +47,7 @@ export function Intro({
 
   useEffect(() => {
     if (step !== "brand" || !taglineShown) return;
-    const hold = setTimeout(() => setFading(true), HOLD_MS);
+    const hold = setTimeout(() => setFading(true), TAGLINE_HOLD_MS);
     return () => clearTimeout(hold);
   }, [step, taglineShown]);
 
