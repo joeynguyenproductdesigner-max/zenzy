@@ -46,6 +46,19 @@ export function MainScreen() {
     setSafariWarning(!supported && isSafariOrIOS());
   }, []);
 
+  // Chờ 3s sau khi bấm Start working mới hiện S0, thay vì hiện ngay ở màn
+  // Ready — để người dùng thấy timer chạy thật rồi mới xin quyền.
+  const [notifPromptDelayElapsed, setNotifPromptDelayElapsed] = useState(false);
+  useEffect(() => {
+    if (session.status !== "working") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting the delay gate when leaving "working" so a later restart re-runs the 3s wait, not derivable during render
+      setNotifPromptDelayElapsed(false);
+      return;
+    }
+    const timer = setTimeout(() => setNotifPromptDelayElapsed(true), 3000);
+    return () => clearTimeout(timer);
+  }, [session.status]);
+
   useEyeBreakNotifier({
     status: session.status,
     workMinutes: session.workMinutes,
@@ -54,7 +67,8 @@ export function MainScreen() {
   });
 
   const showNotifPrompt =
-    session.status === "ready" &&
+    session.status === "working" &&
+    notifPromptDelayElapsed &&
     notifSupported &&
     permission === "default" &&
     !notifDismissed;
