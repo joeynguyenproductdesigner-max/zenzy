@@ -2,26 +2,28 @@
 
 import Image from "next/image";
 import { themeBackgrounds } from "../../../media-config";
-import { useLocalStorage } from "@/lib/use-local-storage";
 import { DialogPanel } from "./DialogPanel";
 
-export function ThemeDialog({ open }: { open: boolean }) {
-  const [selectedThemeId, setSelectedThemeId] = useLocalStorage<string>(
-    "zenzy:theme",
-    themeBackgrounds[0].id
-  );
-
+export function ThemeDialog({
+  open,
+  selectedThemeId,
+  onSelectTheme,
+}: {
+  open: boolean;
+  selectedThemeId: string;
+  onSelectTheme: (id: string) => void;
+}) {
   if (!open) return null;
 
   return (
     <DialogPanel>
       <p className="text-[32px] font-black text-white">Themes</p>
-      <div className="grid max-h-[600px] grid-cols-2 gap-x-3 gap-y-4 overflow-y-auto p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="grid min-h-0 flex-1 grid-cols-2 gap-x-3 gap-y-4 overflow-y-auto p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {themeBackgrounds.map((theme) => (
           <button
             key={theme.id}
             type="button"
-            onClick={() => setSelectedThemeId(theme.id)}
+            onClick={() => onSelectTheme(theme.id)}
             className="flex flex-col gap-2 text-left"
           >
             <div
