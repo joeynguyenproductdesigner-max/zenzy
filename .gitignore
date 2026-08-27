@@ -29,8 +29,10 @@ yarn-error.log*
 # vercel
 .vercel
 
-# claude code local dev config
-/.claude/
+# claude code local dev config (fix-log.md is intentionally tracked —
+# it's shared, cross-session bug memory, not per-machine dev config)
+/.claude/*
+!/.claude/fix-log.md
 
 # typescript
 *.tsbuildinfo
