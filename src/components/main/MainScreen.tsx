@@ -93,24 +93,30 @@ export function MainScreen() {
         </p>
       )}
 
-      {(themesOpen || soundsOpen) && (
-        <div
-          className="absolute inset-0 z-10 flex items-end justify-end bg-black/40 pr-16 pb-[101.5px]"
-          onClick={() => {
-            setThemesOpen(false);
-            setSoundsOpen(false);
-          }}
-        >
-          <div onClick={(e) => e.stopPropagation()}>
-            <ThemeDialog
-              open={themesOpen}
-              selectedThemeId={themeId}
-              onSelectTheme={setThemeId}
-            />
-            <SoundDialog open={soundsOpen} />
-          </div>
+      {/* Always mounted (never conditionally rendered on themesOpen/soundsOpen)
+          so SoundDialog's <audio> elements and playback state survive the
+          dialog being closed — only the backdrop's visibility/hit-testing
+          toggles, not the dialogs themselves. */}
+      <div
+        className={`absolute inset-0 z-10 flex items-end justify-end pr-16 pb-[101.5px] ${
+          themesOpen || soundsOpen
+            ? "bg-black/40"
+            : "pointer-events-none bg-transparent"
+        }`}
+        onClick={() => {
+          setThemesOpen(false);
+          setSoundsOpen(false);
+        }}
+      >
+        <div onClick={(e) => e.stopPropagation()}>
+          <ThemeDialog
+            open={themesOpen}
+            selectedThemeId={themeId}
+            onSelectTheme={setThemeId}
+          />
+          <SoundDialog open={soundsOpen} />
         </div>
-      )}
+      </div>
 
       <HudControls
         themesOpen={themesOpen}
