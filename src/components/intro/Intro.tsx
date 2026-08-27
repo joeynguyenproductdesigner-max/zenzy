@@ -47,7 +47,11 @@ export function Intro({
 
   useEffect(() => {
     if (step !== "brand" || !taglineShown) return;
-    const hold = setTimeout(() => setFading(true), TAGLINE_HOLD_MS);
+    // taglineShown chỉ mới BẮT ĐẦU animation reveal (grid-rows/opacity,
+    // dài FADE_MS) — phải chờ animation đó chạy xong rồi mới tính mốc
+    // dừng nghỉ TAGLINE_HOLD_MS, nếu không 2 khoảng thời gian này chạy
+    // song song và slogan biến mất ngay khi vừa hiện xong.
+    const hold = setTimeout(() => setFading(true), FADE_MS + TAGLINE_HOLD_MS);
     return () => clearTimeout(hold);
   }, [step, taglineShown]);
 
