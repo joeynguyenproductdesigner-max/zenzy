@@ -2,15 +2,17 @@
 
 import Image from "next/image";
 import { themeBackgrounds } from "../../../media-config";
-import { useLocalStorage } from "@/lib/use-local-storage";
 import { DialogPanel } from "./DialogPanel";
 
-export function ThemeDialog({ open }: { open: boolean }) {
-  const [selectedThemeId, setSelectedThemeId] = useLocalStorage<string>(
-    "zenzy:theme",
-    themeBackgrounds[0].id
-  );
-
+export function ThemeDialog({
+  open,
+  selectedThemeId,
+  onSelectTheme,
+}: {
+  open: boolean;
+  selectedThemeId: string;
+  onSelectTheme: (id: string) => void;
+}) {
   if (!open) return null;
 
   return (
@@ -21,7 +23,7 @@ export function ThemeDialog({ open }: { open: boolean }) {
           <button
             key={theme.id}
             type="button"
-            onClick={() => setSelectedThemeId(theme.id)}
+            onClick={() => onSelectTheme(theme.id)}
             className="flex flex-col gap-2 text-left"
           >
             <div

@@ -14,7 +14,7 @@ import { BreakView } from "./BreakView";
 import { HudControls } from "./HudControls";
 
 export function MainScreen() {
-  const [themeId] = useLocalStorage<string>(
+  const [themeId, setThemeId] = useLocalStorage<string>(
     "zenzy:theme",
     themeBackgrounds[0].id
   );
@@ -102,7 +102,11 @@ export function MainScreen() {
           }}
         >
           <div onClick={(e) => e.stopPropagation()}>
-            <ThemeDialog open={themesOpen} />
+            <ThemeDialog
+              open={themesOpen}
+              selectedThemeId={themeId}
+              onSelectTheme={setThemeId}
+            />
             <SoundDialog open={soundsOpen} />
           </div>
         </div>
