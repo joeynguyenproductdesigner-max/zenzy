@@ -36,25 +36,43 @@ export function useWorkSession() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- chỉ đồng bộ khi workMinutes đổi, không phải khi status đổi
   }, [workMinutes]);
 
+  // Đếm theo mốc thời gian thực (Date.now()) thay vì trừ 1 giây mỗi tick.
+  // Trình duyệt (kể cả Arc) chủ động làm chậm/bỏ tick của setInterval khi
+  // tab chạy nền để tiết kiệm pin — nếu đếm kiểu "mỗi tick trừ 1" thì số
+  // hiển thị bị sai/đứng lại, và vì không bao giờ thật sự chạm mốc 0 nên
+  // không bao giờ chuyển sang "prompt" → notification không bao giờ bắn.
+  // Tính lại theo mốc kết thúc thật thì dù tick có bị trễ/thưa, lần nó
+  // chạy lại vẫn tính đúng đã trôi bao nhiêu giây.
   useEffect(() => {
     if (status !== "working" && status !== "break") return;
 
-    const interval = setInterval(() => {
-      setRemainingSeconds((prev) => {
-        if (prev <= 1) {
-          if (tickingRef.current === "working") {
-            setStatus("prompt");
-          } else {
-            setStatus("ready");
-            return workMinutes * 60;
-          }
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    const endTime = Date.now() + remainingSeconds * 1000;
 
-    return () => clearInterval(interval);
+    const tick = () => {
+      const secondsLeft = Math.max(0, Math.round((endTime - Date.now()) / 1000));
+      setRemainingSeconds(secondsLeft);
+      if (secondsLeft <= 0) {
+        if (tickingRef.current === "working") {
+          setStatus("prompt");
+        } else {
+          setStatus("ready");
+          setRemainingSeconds(workMinutes * 60);
+        }
+      }
+    };
+
+    const interval = setInterval(tick, 1000);
+    // Cập nhật ngay khi tab active lại, không cần chờ tick kế tiếp.
+    const onVisibilityChange = () => {
+      if (!document.hidden) tick();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- chỉ muốn chốt mốc kết thúc mới khi CHUYỂN status (start/resume/snooze/takeBreak), không phải mỗi khi remainingSeconds tự đếm xuống bên trong chính effect này
   }, [status, workMinutes]);
 
   const selectDuration = useCallback(

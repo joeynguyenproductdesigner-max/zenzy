@@ -4,6 +4,14 @@ Persistent memory of bugs found and fixed in this project. Check this before deb
 
 ---
 
+## [2026-08-27] Countdown wrong/stalled in background tab, break notification never fires
+
+- **Symptom:** Two reports that turned out to be one bug: (1) "the timer counts wrong, sometimes stops counting" while working in another tab; (2) "when time's up while on another tab, no push notification appears." Confirmed on Arc (Chromium-based) via the deployed Vercel URL, not a dev-only artifact.
+- **Where:** `src/lib/use-work-session.ts`, the ticking `useEffect`.
+- **Root cause:** The countdown decremented `remainingSeconds` by exactly 1 on every `setInterval` tick ("tick-counting"). Browsers (Chrome/Arc/Firefox/Safari) intentionally throttle or delay `setInterval` timers in backgrounded tabs to save CPU/battery — ticks fire late or get skipped. Because the code trusted "1 tick = 1 real second," a throttled tab's displayed time drifted or stalled, and since it might never actually reach `<= 1`, `status` never transitioned to `"prompt"` — so `useEyeBreakNotifier`'s notification-firing effect (which only fires on that transition) never ran either.
+- **Fix:** Switched to a timestamp-based countdown: capture a real `endTime = Date.now() + remainingSeconds * 1000` whenever a working/break segment starts (on `status` change), and on every tick (plus immediately on `visibilitychange` when the tab becomes visible again) recompute `secondsLeft = Math.round((endTime - Date.now()) / 1000)`. A late or skipped tick self-corrects the next time it fires, since it's always measured against real wall-clock time, not a running counter.
+- **Gotcha:** Don't try to "fix" this by just polling more often (e.g. `setInterval(..., 250)`) — throttling still applies to background tabs regardless of the requested interval; the fix has to be computing from a fixed end-time, not counting ticks. Also: extremely long backgrounding (tab discarded/frozen entirely by the OS or browser) is a hard limit no client-only JS can fully overcome without a real push server — CLAUDE.md forbids adding one, so this fix covers the common "throttled but still running" case, not indefinite backgrounding.
+
 ## [2026-08-26] Audio silently didn't play — autoplay-gesture policy
 
 - **Symptom:** Selecting a sound/music card showed the UI as selected (ring, slider) but no audio was ever audible, with no visible error initially.
