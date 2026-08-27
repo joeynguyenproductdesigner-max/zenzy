@@ -1,11 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ThemeDialog } from "@/components/dialog/ThemeDialog";
 import { SoundDialog } from "@/components/dialog/SoundDialog";
+import { NotificationPrompt } from "@/components/notifications/NotificationPrompt";
 import { useLocalStorage } from "@/lib/use-local-storage";
 import { useWorkSession } from "@/lib/use-work-session";
+import { useEyeBreakNotifier } from "@/lib/use-eye-break-notifier";
+import { isNotificationSupported, isSafariOrIOS } from "@/lib/browser-support";
 import { themeBackgrounds } from "../../../media-config";
 import { GreetingHeader } from "./GreetingHeader";
 import { ChronoView } from "./ChronoView";
@@ -25,6 +28,36 @@ export function MainScreen() {
   const session = useWorkSession();
   const [themesOpen, setThemesOpen] = useState(false);
   const [soundsOpen, setSoundsOpen] = useState(false);
+
+  const [notifDismissed, setNotifDismissed] = useLocalStorage<boolean>(
+    "zenzy:notif-prompt-dismissed",
+    false
+  );
+  // Đọc sau mount để tránh mismatch SSR/client (phụ thuộc API trình duyệt).
+  const [notifSupported, setNotifSupported] = useState(false);
+  const [permission, setPermission] = useState<NotificationPermission>("default");
+  const [safariWarning, setSafariWarning] = useState(false);
+
+  useEffect(() => {
+    const supported = isNotificationSupported();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time read of browser feature/permission after mount, needed to avoid an SSR/client mismatch
+    setNotifSupported(supported);
+    if (supported) setPermission(Notification.permission);
+    setSafariWarning(!supported && isSafariOrIOS());
+  }, []);
+
+  useEyeBreakNotifier({
+    status: session.status,
+    workMinutes: session.workMinutes,
+    onSnooze: session.snooze,
+    onTakeBreak: session.takeBreak,
+  });
+
+  const showNotifPrompt =
+    session.status === "ready" &&
+    notifSupported &&
+    permission === "default" &&
+    !notifDismissed;
 
   const showTabs = session.status !== "prompt" && session.status !== "break";
 
@@ -91,6 +124,28 @@ export function MainScreen() {
         <p className="absolute bottom-12 left-16 text-[16px] text-[#a0a5b5]">
           Based on the 20-20-20 rule — American Optometric Association
         </p>
+      )}
+
+      {safariWarning && (
+        <p className="absolute bottom-12 left-16 max-w-[400px] text-[14px] text-white/70">
+          Safari/iOS limits background reminders — keep this tab open, or
+          we&apos;ll flash the tab title when it&apos;s time to rest.
+        </p>
+      )}
+
+      {showNotifPrompt && (
+        <NotificationPrompt
+          onDismiss={() => setNotifDismissed(true)}
+          onEnable={() => {
+            Notification.requestPermission().then((result) => {
+              setPermission(result);
+              setNotifDismissed(true);
+              if (result === "granted") {
+                navigator.serviceWorker.register("/sw.js").catch(() => {});
+              }
+            });
+          }}
+        />
       )}
 
       {/* Always mounted (never conditionally rendered on themesOpen/soundsOpen)
