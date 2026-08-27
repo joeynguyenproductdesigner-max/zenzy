@@ -54,10 +54,13 @@ function useLoopingAudio(volume: number) {
     const audio = audioRef.current;
     audio.src = url;
     audio.volume = volume;
-    audio
-      .play()
-      .then(() => setIsPlaying(true))
-      .catch(() => setIsPlaying(false));
+    // Set isPlaying optimistically instead of waiting on the play()
+    // promise — that promise only resolves once playback actually
+    // starts (enough data buffered), so on a slow connection the
+    // button stayed stuck on "Play" even though audio.paused was
+    // already false. Matches the same pattern useSoundMixer uses.
+    audio.play().catch(() => {});
+    setIsPlaying(true);
   };
 
   const stop = () => {
@@ -69,7 +72,8 @@ function useLoopingAudio(volume: number) {
     const audio = audioRef.current;
     if (!audio || !audio.src) return;
     if (audio.paused) {
-      audio.play().then(() => setIsPlaying(true)).catch(() => {});
+      audio.play().catch(() => {});
+      setIsPlaying(true);
     } else {
       audio.pause();
       setIsPlaying(false);
