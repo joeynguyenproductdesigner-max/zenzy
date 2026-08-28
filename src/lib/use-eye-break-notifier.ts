@@ -52,10 +52,13 @@ export function useEyeBreakNotifier({
       navigator.serviceWorker.removeEventListener("message", onMessage);
   }, [onSnooze, onTakeBreak]);
 
-  // Title-flash fallback cho Safari/iOS (CLAUDE.md, quyết định #4).
+  // Title-flash: lưới an toàn chạy song song với showNotification() cho MỌI
+  // trình duyệt (không chỉ Safari/iOS ở quyết định #4) — vì permission
+  // "granted" không đảm bảo OS thực sự hiện banner (OS có thể chặn ở tầng
+  // System Settings mà JS không cách nào phát hiện được). Nhấp nháy title
+  // là tín hiệu dự phòng miễn phí, không xung đột với notification hệ thống.
   useEffect(() => {
     if (status !== "prompt") return;
-    if (isNotificationSupported()) return;
     if (!hiddenRef.current) return;
 
     const originalTitle = document.title;

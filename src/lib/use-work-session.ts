@@ -5,6 +5,7 @@ import { useLocalStorage } from "./use-local-storage";
 import { DEFAULT_WORK_MINUTES, breakSecondsFor } from "./work-durations";
 
 export type SessionStatus =
+  | "recovery"
   | "ready"
   | "working"
   | "paused"
@@ -12,6 +13,35 @@ export type SessionStatus =
   | "break";
 
 const SNOOZE_SECONDS = 5 * 60;
+
+// Session recovery (CLAUDE.md quyết định #3): lưu lại phiên đang dang dở khi
+// tab bị ẩn/đóng, để hỏi resume nếu mở lại trong vòng 2 giờ.
+const RECOVERY_KEY = "zenzy:session-recovery";
+const RECOVERY_WINDOW_MS = 2 * 60 * 60 * 1000;
+
+interface RecoverySnapshot {
+  closedAt: number;
+  workMinutes: number;
+  remainingSeconds: number;
+}
+
+function readRecovery(): RecoverySnapshot | null {
+  try {
+    const raw = window.localStorage.getItem(RECOVERY_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as RecoverySnapshot;
+  } catch {
+    return null;
+  }
+}
+
+function clearRecovery() {
+  try {
+    window.localStorage.removeItem(RECOVERY_KEY);
+  } catch {
+    // Ignore storage errors (e.g. private mode).
+  }
+}
 
 export function useWorkSession() {
   const [workMinutes, setWorkMinutes] = useLocalStorage<number>(
@@ -22,10 +52,64 @@ export function useWorkSession() {
   const [remainingSeconds, setRemainingSeconds] = useState(
     workMinutes * 60
   );
+  const [recovery, setRecovery] = useState<RecoverySnapshot | null>(null);
+  const [showWelcomeBack, setShowWelcomeBack] = useState(false);
   const tickingRef = useRef<SessionStatus>(status);
   useEffect(() => {
     tickingRef.current = status;
   }, [status]);
+
+  // Phát hiện phiên dang dở ngay khi mount (chỉ chạy client — tránh mismatch SSR).
+  useEffect(() => {
+    const snapshot = readRecovery();
+    if (snapshot && Date.now() - snapshot.closedAt <= RECOVERY_WINDOW_MS) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time read of localStorage after mount, needed to avoid an SSR/client mismatch
+      setRecovery(snapshot);
+      setStatus("recovery");
+    } else {
+      // Quá 2 giờ (hoặc không có phiên dang dở nào): bỏ hẳn màn S5, vào
+      // thẳng màn chính — chỉ đổi câu chào thành "Welcome back" nếu trước đó
+      // có phiên đã hết hạn, để vẫn giữ cảm giác "chào lại người quen".
+      if (snapshot) setShowWelcomeBack(true);
+      clearRecovery();
+    }
+  }, []);
+
+  // Lưu snapshot khi tab bị ẩn/đóng trong lúc đang "working"/"paused" — dùng
+  // ref để đăng ký listener đúng 1 lần, không phải mỗi khi remainingSeconds
+  // đổi (tick mỗi giây).
+  const latestSessionRef = useRef({ status, workMinutes, remainingSeconds });
+  useEffect(() => {
+    latestSessionRef.current = { status, workMinutes, remainingSeconds };
+  }, [status, workMinutes, remainingSeconds]);
+
+  useEffect(() => {
+    const save = () => {
+      const current = latestSessionRef.current;
+      if (current.status !== "working" && current.status !== "paused") return;
+      try {
+        window.localStorage.setItem(
+          RECOVERY_KEY,
+          JSON.stringify({
+            closedAt: Date.now(),
+            workMinutes: current.workMinutes,
+            remainingSeconds: current.remainingSeconds,
+          })
+        );
+      } catch {
+        // Ignore storage errors (e.g. private mode).
+      }
+    };
+    const onVisibilityChange = () => {
+      if (document.hidden) save();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    window.addEventListener("pagehide", save);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("pagehide", save);
+    };
+  }, []);
 
   // Đổi mốc thời gian khi đang ở trạng thái Sẵn sàng thì đồng bộ lại countdown hiển thị.
   useEffect(() => {
@@ -53,6 +137,7 @@ export function useWorkSession() {
       setRemainingSeconds(secondsLeft);
       if (secondsLeft <= 0) {
         if (tickingRef.current === "working") {
+          clearRecovery();
           setStatus("prompt");
         } else {
           setStatus("ready");
@@ -87,6 +172,21 @@ export function useWorkSession() {
   const pause = useCallback(() => setStatus("paused"), []);
   const resume = useCallback(() => setStatus("working"), []);
   const reset = useCallback(() => {
+    clearRecovery();
+    setStatus("ready");
+    setRemainingSeconds(workMinutes * 60);
+  }, [workMinutes]);
+  const resumeSession = useCallback(() => {
+    if (!recovery) return;
+    clearRecovery();
+    setWorkMinutes(recovery.workMinutes);
+    setRemainingSeconds(recovery.remainingSeconds);
+    setRecovery(null);
+    setStatus("working");
+  }, [recovery, setWorkMinutes]);
+  const dismissRecovery = useCallback(() => {
+    clearRecovery();
+    setRecovery(null);
     setStatus("ready");
     setRemainingSeconds(workMinutes * 60);
   }, [workMinutes]);
@@ -107,6 +207,10 @@ export function useWorkSession() {
     status,
     workMinutes,
     remainingSeconds,
+    recoveryMinutesLeft: recovery
+      ? Math.ceil(recovery.remainingSeconds / 60)
+      : 0,
+    showWelcomeBack,
     selectDuration,
     start,
     pause,
@@ -115,5 +219,7 @@ export function useWorkSession() {
     snooze,
     takeBreak,
     skipBreak,
+    resumeSession,
+    dismissRecovery,
   };
 }

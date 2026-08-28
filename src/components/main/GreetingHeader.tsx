@@ -4,7 +4,11 @@ import { useEffect, useState } from "react";
 import { useLocalStorage } from "@/lib/use-local-storage";
 import { getTimeOfDayGreeting, greetingWithName } from "@/lib/greeting";
 
-export function GreetingHeader() {
+export function GreetingHeader({
+  welcomeBack = false,
+}: {
+  welcomeBack?: boolean;
+}) {
   const [name] = useLocalStorage<string>("zenzy:name", "");
   const [hour, setHour] = useState<number | null>(null);
 
@@ -18,7 +22,13 @@ export function GreetingHeader() {
     return <div className="h-[96px] w-full" />;
   }
 
-  const greeting = getTimeOfDayGreeting(hour);
+  const timeGreeting = getTimeOfDayGreeting(hour);
+  // Nếu vừa có 1 phiên dang dở đã hết hạn (>2 giờ), thay tiêu đề chào theo
+  // giờ trong ngày bằng "Welcome back" — bỏ hẳn màn S5 riêng nhưng vẫn giữ
+  // cảm giác chào lại người quen ngay trên màn chính.
+  const greeting = welcomeBack
+    ? { ...timeGreeting, title: "Welcome back" }
+    : timeGreeting;
 
   return (
     <div className="w-full text-center font-semibold text-[40px] leading-[1.2] text-white">

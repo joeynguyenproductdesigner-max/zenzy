@@ -9,11 +9,12 @@ import { useLocalStorage } from "@/lib/use-local-storage";
 import { useWorkSession } from "@/lib/use-work-session";
 import { useEyeBreakNotifier } from "@/lib/use-eye-break-notifier";
 import { isNotificationSupported, isSafariOrIOS } from "@/lib/browser-support";
-import { themeBackgrounds } from "../../../media-config";
+import { themeBackgrounds, kineticVisual } from "../../../media-config";
 import { GreetingHeader } from "./GreetingHeader";
 import { ChronoView } from "./ChronoView";
 import { WorkEndedPrompt } from "./WorkEndedPrompt";
 import { BreakView } from "./BreakView";
+import { SessionRecoveryPrompt } from "./SessionRecoveryPrompt";
 import { HudControls } from "./HudControls";
 
 export function MainScreen() {
@@ -73,19 +74,34 @@ export function MainScreen() {
     permission === "default" &&
     !notifDismissed;
 
-  const showTabs = session.status !== "prompt" && session.status !== "break";
+  const showTabs =
+    session.status !== "prompt" &&
+    session.status !== "break" &&
+    session.status !== "recovery";
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden">
       <div aria-hidden className="absolute inset-0">
-        <Image
-          src={background.url}
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover"
-        />
+        {session.status === "break" ? (
+          <video
+            key={kineticVisual.url}
+            src={kineticVisual.url}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 size-full object-cover"
+          />
+        ) : (
+          <Image
+            src={background.url}
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover"
+          />
+        )}
         <div className="absolute inset-0 bg-black/30" />
       </div>
 
@@ -100,7 +116,16 @@ export function MainScreen() {
       </div>
 
       <div className="relative flex flex-col items-center gap-12">
-        {showTabs && <GreetingHeader />}
+        {showTabs && <GreetingHeader welcomeBack={session.showWelcomeBack} />}
+
+        {session.status === "recovery" && (
+          <SessionRecoveryPrompt
+            name={name || undefined}
+            minutesLeft={session.recoveryMinutesLeft}
+            onResume={session.resumeSession}
+            onStartNew={session.dismissRecovery}
+          />
+        )}
 
         {(session.status === "ready" ||
           session.status === "working" ||
