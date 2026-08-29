@@ -8,6 +8,7 @@ import { NotificationPrompt } from "@/components/notifications/NotificationPromp
 import { useLocalStorage } from "@/lib/use-local-storage";
 import { useWorkSession } from "@/lib/use-work-session";
 import { useEyeBreakNotifier } from "@/lib/use-eye-break-notifier";
+import { usePictureInPicture } from "@/lib/use-picture-in-picture";
 import { isNotificationSupported, isSafariOrIOS } from "@/lib/browser-support";
 import { themeBackgrounds, kineticVisual } from "../../../media-config";
 import { GreetingHeader } from "./GreetingHeader";
@@ -16,6 +17,7 @@ import { WorkEndedPrompt } from "./WorkEndedPrompt";
 import { BreakView } from "./BreakView";
 import { SessionRecoveryPrompt } from "./SessionRecoveryPrompt";
 import { HudControls } from "./HudControls";
+import { PipActiveNotice, PipPortal } from "./PictureInPicture";
 
 export function MainScreen() {
   const [themeId, setThemeId] = useLocalStorage<string>(
@@ -66,6 +68,21 @@ export function MainScreen() {
     onSnooze: session.snooze,
     onTakeBreak: session.takeBreak,
   });
+
+  const {
+    supported: pipSupported,
+    pipWindow,
+    openPip,
+    closePip,
+  } = usePictureInPicture();
+  // PiP chỉ hiển thị countdown working/paused — session rời 2 trạng thái
+  // này (hết giờ, reset, vào break...) thì đóng PiP luôn, tránh cửa sổ nổi
+  // hiện nội dung không còn khớp trạng thái thật.
+  useEffect(() => {
+    if (session.status !== "working" && session.status !== "paused") {
+      closePip();
+    }
+  }, [session.status, closePip]);
 
   const showNotifPrompt =
     session.status === "working" &&
@@ -129,18 +146,23 @@ export function MainScreen() {
 
         {(session.status === "ready" ||
           session.status === "working" ||
-          session.status === "paused") && (
-          <ChronoView
-            status={session.status}
-            workMinutes={session.workMinutes}
-            remainingSeconds={session.remainingSeconds}
-            onSelectDuration={session.selectDuration}
-            onStart={session.start}
-            onPause={session.pause}
-            onResume={session.resume}
-            onReset={session.reset}
-          />
-        )}
+          session.status === "paused") &&
+          (pipWindow ? (
+            <PipActiveNotice onClose={closePip} />
+          ) : (
+            <ChronoView
+              status={session.status}
+              workMinutes={session.workMinutes}
+              remainingSeconds={session.remainingSeconds}
+              onSelectDuration={session.selectDuration}
+              onStart={session.start}
+              onPause={session.pause}
+              onResume={session.resume}
+              onReset={session.reset}
+              pipSupported={pipSupported}
+              onOpenPip={openPip}
+            />
+          ))}
 
         {session.status === "prompt" && (
           <WorkEndedPrompt
@@ -224,6 +246,20 @@ export function MainScreen() {
           setThemesOpen(false);
         }}
       />
+
+      {pipWindow &&
+        (session.status === "working" || session.status === "paused") && (
+          <PipPortal
+            pipWindow={pipWindow}
+            status={session.status}
+            remainingSeconds={session.remainingSeconds}
+            backgroundUrl={background.url}
+            onPauseResume={
+              session.status === "paused" ? session.resume : session.pause
+            }
+            onReset={session.reset}
+          />
+        )}
     </div>
   );
 }
