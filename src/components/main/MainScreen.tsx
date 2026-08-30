@@ -112,8 +112,11 @@ export function MainScreen() {
   // Lưới an toàn: nếu quên bấm nút PiP trước khi rời tab, video ẩn này tự
   // nổi lên thay (mất nút Reset, chỉ còn play/pause gốc). Chỉ bật khi
   // Document PiP CHƯA mở thủ công, tránh 2 cửa sổ nổi cùng lúc.
-  const { canvasRef: fallbackCanvasRef, videoRef: fallbackVideoRef } =
-    useAutoPipFallback({
+  const {
+    canvasRef: fallbackCanvasRef,
+    videoRef: fallbackVideoRef,
+    openManually: openFallbackPip,
+  } = useAutoPipFallback({
       active:
         (session.status === "working" || session.status === "paused") &&
         !pipWindow,
@@ -199,12 +202,14 @@ export function MainScreen() {
               onPause={session.pause}
               onResume={session.resume}
               onReset={session.reset}
-              // Arc có API documentPictureInPicture nhưng không mở cửa sổ
-              // nổi độc lập thật (dính theo tab, chuyển tab là biến mất) —
-              // ẩn nút thay vì hiện ra rồi hoạt động sai. Lưới an toàn
-              // (video auto-PiP) vẫn chạy ngầm bình thường trên Arc.
-              pipSupported={pipSupported && !isArc}
-              onOpenPip={openPip}
+              // Document PiP trên Arc mở được nhưng mất ngay khi đổi tab
+              // (dính theo tab, không phải window độc lập thật) — Arc dùng
+              // cửa sổ video của lưới an toàn thay, đã test tay giữ được
+              // khi đổi tab (khác autoPictureInPicture, không tự kích hoạt
+              // được trên Arc nhưng gọi tay requestPictureInPicture() thì
+              // được).
+              pipSupported={isArc ? true : pipSupported}
+              onOpenPip={isArc ? openFallbackPip : openPip}
             />
           ))}
 

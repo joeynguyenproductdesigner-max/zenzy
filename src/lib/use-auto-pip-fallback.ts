@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { formatCountdown } from "./work-durations";
 
 // autoPictureInPicture chưa có trong lib.dom.d.ts (thuộc tính còn khá mới —
@@ -172,5 +172,17 @@ export function useAutoPipFallback({
     }
   }, [active]);
 
-  return { canvasRef, videoRef };
+  // Mở tay cửa sổ video PiP này — dùng cho Arc: autoPictureInPicture không
+  // tự kích hoạt được (đã xác nhận qua test tay), nhưng gọi thẳng
+  // requestPictureInPicture() vẫn mở được và giữ được khi đổi tab (khác
+  // Document PiP bị mất ngay khi đổi tab trên Arc).
+  const openManually = useCallback(() => {
+    const video = videoRef.current;
+    if (!video || document.pictureInPictureElement === video) return;
+    video.requestPictureInPicture().catch((err) => {
+      console.error("[Zenzy] fallback requestPictureInPicture failed", err);
+    });
+  }, []);
+
+  return { canvasRef, videoRef, openManually };
 }
