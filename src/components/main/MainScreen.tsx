@@ -10,7 +10,11 @@ import { useWorkSession } from "@/lib/use-work-session";
 import { useEyeBreakNotifier } from "@/lib/use-eye-break-notifier";
 import { usePictureInPicture } from "@/lib/use-picture-in-picture";
 import { useAutoPipFallback } from "@/lib/use-auto-pip-fallback";
-import { isNotificationSupported, isSafariOrIOS } from "@/lib/browser-support";
+import {
+  isNotificationSupported,
+  isSafariOrIOS,
+  isArcBrowser,
+} from "@/lib/browser-support";
 import { themeBackgrounds, kineticVisual } from "../../../media-config";
 import { GreetingHeader } from "./GreetingHeader";
 import { ChronoView } from "./ChronoView";
@@ -41,6 +45,9 @@ export function MainScreen() {
   const [notifSupported, setNotifSupported] = useState(false);
   const [permission, setPermission] = useState<NotificationPermission>("default");
   const [safariWarning, setSafariWarning] = useState(false);
+  // Đọc sau mount vì phụ thuộc CSS custom property Arc tự inject (chỉ có
+  // sau khi trang render xong), tránh mismatch SSR/client.
+  const [isArc, setIsArc] = useState(false);
 
   useEffect(() => {
     const supported = isNotificationSupported();
@@ -48,6 +55,7 @@ export function MainScreen() {
     setNotifSupported(supported);
     if (supported) setPermission(Notification.permission);
     setSafariWarning(!supported && isSafariOrIOS());
+    setIsArc(isArcBrowser());
   }, []);
 
   // Chờ 3s sau khi bấm Start working mới hiện S0, thay vì hiện ngay ở màn
@@ -175,7 +183,11 @@ export function MainScreen() {
               onPause={session.pause}
               onResume={session.resume}
               onReset={session.reset}
-              pipSupported={pipSupported}
+              // Arc có API documentPictureInPicture nhưng không mở cửa sổ
+              // nổi độc lập thật (dính theo tab, chuyển tab là biến mất) —
+              // ẩn nút thay vì hiện ra rồi hoạt động sai. Lưới an toàn
+              // (video auto-PiP) vẫn chạy ngầm bình thường trên Arc.
+              pipSupported={pipSupported && !isArc}
               onOpenPip={openPip}
             />
           ))}

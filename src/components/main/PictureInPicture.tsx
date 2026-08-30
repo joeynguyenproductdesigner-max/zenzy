@@ -52,14 +52,14 @@ function PipContent({
       />
       <div className="absolute inset-0 bg-black/40" />
       <div className="relative flex flex-col items-center gap-4">
-        <p className="text-[56px] font-black leading-none text-white">
+        <p className="text-[72px] font-black leading-none text-white">
           {formatCountdown(remainingSeconds)}
         </p>
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={onPauseResume}
-            className="rounded-full bg-[#5e3bee] px-8 py-2.5 text-[15px] font-bold text-white"
+            className="rounded-full bg-[#5e3bee] px-8 py-2.5 text-[14px] font-medium text-white"
           >
             {status === "paused" ? "Continue" : "Pause"}
           </button>
