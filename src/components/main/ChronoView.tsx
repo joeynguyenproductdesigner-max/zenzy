@@ -14,7 +14,8 @@ export function ChronoView({
   onResume,
   onReset,
   pipSupported,
-  onOpenPip,
+  pipActive,
+  onTogglePip,
 }: {
   status: Extract<SessionStatus, "ready" | "working" | "paused">;
   workMinutes: number;
@@ -25,7 +26,8 @@ export function ChronoView({
   onResume: () => void;
   onReset: () => void;
   pipSupported: boolean;
-  onOpenPip: () => void;
+  pipActive: boolean;
+  onTogglePip: () => void;
 }) {
   const running = status !== "ready";
 
@@ -80,10 +82,18 @@ export function ChronoView({
         {pipSupported && running && (
           <button
             type="button"
-            onClick={onOpenPip}
+            onClick={onTogglePip}
             aria-label="Picture in picture"
-            title="Picture in picture"
-            className="flex size-11 items-center justify-center rounded-full border border-white/40 bg-white/20 text-white hover:bg-white/30"
+            title={
+              pipActive
+                ? "Picture in picture is on — switching tabs floats it, coming back closes it"
+                : "Picture in picture"
+            }
+            className={`flex size-11 items-center justify-center rounded-full border text-white ${
+              pipActive
+                ? "border-[#5e3bee] bg-[#5e3bee]"
+                : "border-white/40 bg-white/20 hover:bg-white/30"
+            }`}
           >
             <PictureInPictureIcon size={16} />
           </button>
