@@ -8,13 +8,7 @@ import { NotificationPrompt } from "@/components/notifications/NotificationPromp
 import { useLocalStorage } from "@/lib/use-local-storage";
 import { useWorkSession } from "@/lib/use-work-session";
 import { useEyeBreakNotifier } from "@/lib/use-eye-break-notifier";
-import { usePictureInPicture } from "@/lib/use-picture-in-picture";
-import { useAutoPipFallback } from "@/lib/use-auto-pip-fallback";
-import {
-  isNotificationSupported,
-  isSafariOrIOS,
-  isArcBrowser,
-} from "@/lib/browser-support";
+import { isNotificationSupported, isSafariOrIOS } from "@/lib/browser-support";
 import { themeBackgrounds, kineticVisual } from "../../../media-config";
 import { GreetingHeader } from "./GreetingHeader";
 import { ChronoView } from "./ChronoView";
@@ -22,7 +16,6 @@ import { WorkEndedPrompt } from "./WorkEndedPrompt";
 import { BreakView } from "./BreakView";
 import { SessionRecoveryPrompt } from "./SessionRecoveryPrompt";
 import { HudControls } from "./HudControls";
-import { PipActiveNotice, PipPortal } from "./PictureInPicture";
 
 export function MainScreen() {
   const [themeId, setThemeId] = useLocalStorage<string>(
@@ -45,9 +38,6 @@ export function MainScreen() {
   const [notifSupported, setNotifSupported] = useState(false);
   const [permission, setPermission] = useState<NotificationPermission>("default");
   const [safariWarning, setSafariWarning] = useState(false);
-  // Đọc sau mount vì phụ thuộc CSS custom property Arc tự inject (chỉ có
-  // sau khi trang render xong), tránh mismatch SSR/client.
-  const [isArc, setIsArc] = useState(false);
 
   useEffect(() => {
     const supported = isNotificationSupported();
@@ -55,23 +45,6 @@ export function MainScreen() {
     setNotifSupported(supported);
     if (supported) setPermission(Notification.permission);
     setSafariWarning(!supported && isSafariOrIOS());
-  }, []);
-
-  // Arc inject CSS custom property riêng SAU khi trang mount xong (không
-  // đồng bộ với lần render đầu), nên check 1 lần lúc mount hay bị hụt —
-  // thử lại vài lần trong 1 giây đầu, dừng ngay khi phát hiện đúng.
-  useEffect(() => {
-    if (isArcBrowser()) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time browser detection after mount, needed to avoid an SSR/client mismatch
-      setIsArc(true);
-      return;
-    }
-    const timers = [100, 300, 800].map((delay) =>
-      setTimeout(() => {
-        if (isArcBrowser()) setIsArc(true);
-      }, delay)
-    );
-    return () => timers.forEach(clearTimeout);
   }, []);
 
   // Chờ 3s sau khi bấm Start working mới hiện S0, thay vì hiện ngay ở màn
@@ -93,39 +66,6 @@ export function MainScreen() {
     onSnooze: session.snooze,
     onTakeBreak: session.takeBreak,
   });
-
-  const {
-    supported: pipSupported,
-    pipWindow,
-    openPip,
-    closePip,
-  } = usePictureInPicture();
-  // PiP chỉ hiển thị countdown working/paused — session rời 2 trạng thái
-  // này (hết giờ, reset, vào break...) thì đóng PiP luôn, tránh cửa sổ nổi
-  // hiện nội dung không còn khớp trạng thái thật.
-  useEffect(() => {
-    if (session.status !== "working" && session.status !== "paused") {
-      closePip();
-    }
-  }, [session.status, closePip]);
-
-  // Lưới an toàn: nếu quên bấm nút PiP trước khi rời tab, video ẩn này tự
-  // nổi lên thay (mất nút Reset, chỉ còn play/pause gốc). Chỉ bật khi
-  // Document PiP CHƯA mở thủ công, tránh 2 cửa sổ nổi cùng lúc.
-  const {
-    canvasRef: fallbackCanvasRef,
-    videoRef: fallbackVideoRef,
-    openManually: openFallbackPip,
-  } = useAutoPipFallback({
-      active:
-        (session.status === "working" || session.status === "paused") &&
-        !pipWindow,
-      status: session.status === "paused" ? "paused" : "working",
-      remainingSeconds: session.remainingSeconds,
-      backgroundUrl: background.url,
-      onPause: session.pause,
-      onResume: session.resume,
-    });
 
   const showNotifPrompt =
     session.status === "working" &&
@@ -189,29 +129,18 @@ export function MainScreen() {
 
         {(session.status === "ready" ||
           session.status === "working" ||
-          session.status === "paused") &&
-          (pipWindow ? (
-            <PipActiveNotice onClose={closePip} />
-          ) : (
-            <ChronoView
-              status={session.status}
-              workMinutes={session.workMinutes}
-              remainingSeconds={session.remainingSeconds}
-              onSelectDuration={session.selectDuration}
-              onStart={session.start}
-              onPause={session.pause}
-              onResume={session.resume}
-              onReset={session.reset}
-              // Document PiP trên Arc mở được nhưng mất ngay khi đổi tab
-              // (dính theo tab, không phải window độc lập thật) — Arc dùng
-              // cửa sổ video của lưới an toàn thay, đã test tay giữ được
-              // khi đổi tab (khác autoPictureInPicture, không tự kích hoạt
-              // được trên Arc nhưng gọi tay requestPictureInPicture() thì
-              // được).
-              pipSupported={isArc ? true : pipSupported}
-              onOpenPip={isArc ? openFallbackPip : openPip}
-            />
-          ))}
+          session.status === "paused") && (
+          <ChronoView
+            status={session.status}
+            workMinutes={session.workMinutes}
+            remainingSeconds={session.remainingSeconds}
+            onSelectDuration={session.selectDuration}
+            onStart={session.start}
+            onPause={session.pause}
+            onResume={session.resume}
+            onReset={session.reset}
+          />
+        )}
 
         {session.status === "prompt" && (
           <WorkEndedPrompt
@@ -295,30 +224,6 @@ export function MainScreen() {
           setThemesOpen(false);
         }}
       />
-
-      {pipWindow &&
-        (session.status === "working" || session.status === "paused") && (
-          <PipPortal
-            pipWindow={pipWindow}
-            status={session.status}
-            remainingSeconds={session.remainingSeconds}
-            backgroundUrl={background.url}
-            onPauseResume={
-              session.status === "paused" ? session.resume : session.pause
-            }
-            onReset={session.reset}
-          />
-        )}
-
-      {/* Nguồn cho lưới an toàn auto-PiP — ẩn hẳn, chỉ tự nổi lên khi
-          Document PiP chưa mở thủ công (xem useAutoPipFallback ở trên). */}
-      <canvas
-        ref={fallbackCanvasRef}
-        width={360}
-        height={230}
-        className="hidden"
-      />
-      <video ref={fallbackVideoRef} muted playsInline className="hidden" />
     </div>
   );
 }

@@ -13,8 +13,6 @@ export function ChronoView({
   onPause,
   onResume,
   onReset,
-  pipSupported,
-  onOpenPip,
 }: {
   status: Extract<SessionStatus, "ready" | "working" | "paused">;
   workMinutes: number;
@@ -24,8 +22,6 @@ export function ChronoView({
   onPause: () => void;
   onResume: () => void;
   onReset: () => void;
-  pipSupported: boolean;
-  onOpenPip: () => void;
 }) {
   const running = status !== "ready";
 
@@ -77,17 +73,15 @@ export function ChronoView({
             <RefreshCwIcon size={16} />
           </button>
         )}
-        {pipSupported && running && (
-          <button
-            type="button"
-            onClick={onOpenPip}
-            aria-label="Picture in picture"
-            title="Picture in picture"
-            className="flex size-11 items-center justify-center rounded-full border border-white/40 bg-white/20 text-white hover:bg-white/30"
-          >
-            <PictureInPictureIcon size={16} />
-          </button>
-        )}
+        <button
+          type="button"
+          aria-label="Picture in picture"
+          title="Coming in a later sprint"
+          // TODO(Sprint 7): wire Document Picture-in-Picture API (document.documentPictureInPicture).
+          className="flex size-11 items-center justify-center rounded-full border border-white/40 bg-white/20 text-white hover:bg-white/30"
+        >
+          <PictureInPictureIcon size={16} />
+        </button>
       </div>
     </div>
   );

@@ -20,21 +20,3 @@ export function isSafariOrIOS(): boolean {
   const isSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(ua);
   return isIOS || isSafari;
 }
-
-// Arc tự nhận là Chrome qua User-Agent (không có cách detect chính thức),
-// nên dò qua CSS custom property riêng mà Arc tự inject vào mọi trang
-// (--arc-palette-title) — kỹ thuật cộng đồng hay dùng, không phải API
-// chính thức, có thể lỗi nếu Arc đổi cách implement sau này.
-// Cần dùng để phân biệt Arc (chỉ mở Document PiP như overlay dính theo
-// tab, không phải cửa sổ nổi độc lập thật — chuyển tab là biến mất) khỏi
-// Chrome/Edge thật (CLAUDE.md quyết định #2 chỉ cam kết 2 trình duyệt này).
-export function isArcBrowser(): boolean {
-  if (typeof window === "undefined" || typeof document === "undefined") {
-    return false;
-  }
-  return (
-    getComputedStyle(document.documentElement)
-      .getPropertyValue("--arc-palette-title")
-      .trim() !== ""
-  );
-}
