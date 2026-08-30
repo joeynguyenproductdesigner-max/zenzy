@@ -9,6 +9,7 @@ import { useLocalStorage } from "@/lib/use-local-storage";
 import { useWorkSession } from "@/lib/use-work-session";
 import { useEyeBreakNotifier } from "@/lib/use-eye-break-notifier";
 import { usePictureInPicture } from "@/lib/use-picture-in-picture";
+import { useAutoPipFallback } from "@/lib/use-auto-pip-fallback";
 import { isNotificationSupported, isSafariOrIOS } from "@/lib/browser-support";
 import { themeBackgrounds, kineticVisual } from "../../../media-config";
 import { GreetingHeader } from "./GreetingHeader";
@@ -83,6 +84,21 @@ export function MainScreen() {
       closePip();
     }
   }, [session.status, closePip]);
+
+  // Lưới an toàn: nếu quên bấm nút PiP trước khi rời tab, video ẩn này tự
+  // nổi lên thay (mất nút Reset, chỉ còn play/pause gốc). Chỉ bật khi
+  // Document PiP CHƯA mở thủ công, tránh 2 cửa sổ nổi cùng lúc.
+  const { canvasRef: fallbackCanvasRef, videoRef: fallbackVideoRef } =
+    useAutoPipFallback({
+      active:
+        (session.status === "working" || session.status === "paused") &&
+        !pipWindow,
+      status: session.status === "paused" ? "paused" : "working",
+      remainingSeconds: session.remainingSeconds,
+      backgroundUrl: background.url,
+      onPause: session.pause,
+      onResume: session.resume,
+    });
 
   const showNotifPrompt =
     session.status === "working" &&
@@ -260,6 +276,16 @@ export function MainScreen() {
             onReset={session.reset}
           />
         )}
+
+      {/* Nguồn cho lưới an toàn auto-PiP — ẩn hẳn, chỉ tự nổi lên khi
+          Document PiP chưa mở thủ công (xem useAutoPipFallback ở trên). */}
+      <canvas
+        ref={fallbackCanvasRef}
+        width={360}
+        height={230}
+        className="hidden"
+      />
+      <video ref={fallbackVideoRef} muted playsInline className="hidden" />
     </div>
   );
 }
