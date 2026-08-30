@@ -55,7 +55,23 @@ export function MainScreen() {
     setNotifSupported(supported);
     if (supported) setPermission(Notification.permission);
     setSafariWarning(!supported && isSafariOrIOS());
-    setIsArc(isArcBrowser());
+  }, []);
+
+  // Arc inject CSS custom property riêng SAU khi trang mount xong (không
+  // đồng bộ với lần render đầu), nên check 1 lần lúc mount hay bị hụt —
+  // thử lại vài lần trong 1 giây đầu, dừng ngay khi phát hiện đúng.
+  useEffect(() => {
+    if (isArcBrowser()) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time browser detection after mount, needed to avoid an SSR/client mismatch
+      setIsArc(true);
+      return;
+    }
+    const timers = [100, 300, 800].map((delay) =>
+      setTimeout(() => {
+        if (isArcBrowser()) setIsArc(true);
+      }, delay)
+    );
+    return () => timers.forEach(clearTimeout);
   }, []);
 
   // Chờ 3s sau khi bấm Start working mới hiện S0, thay vì hiện ngay ở màn
