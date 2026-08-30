@@ -111,7 +111,11 @@ export function useAutoPipFallback({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const stream = canvas.captureStream();
+    // Ép khung hình cố định 30fps thay vì mặc định "chỉ phát khi canvas đổi"
+    // (canvas của mình chỉ vẽ lại 1 lần/giây theo nhịp đếm ngược) — video
+    // phát thưa có thể khiến Chrome không coi đây là media "đang phát" đủ
+    // liên tục để tự kích hoạt auto-PiP lúc ẩn tab.
+    const stream = canvas.captureStream(30);
     video.srcObject = stream;
     video.muted = true;
     video.play().catch(() => {});
