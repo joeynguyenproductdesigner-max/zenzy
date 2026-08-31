@@ -125,17 +125,78 @@ export const ambientSounds: MediaItem[] = [
 ];
 
 // ============================================
-// THEMES — 9 ảnh nền chủ đề (Dialog Themes)
-// Đã xác nhận với Joey (25/08/2026): giữ nguyên hướng anime/cartoon
-// (văn phòng, nội thất nhà, mặt trăng) thay vì thiên nhiên như mô tả gốc
-// ở BRD/PRD (rừng, biển, mưa, quán cà phê). Các file _1/_2/_3 là ảnh khác nhau,
-// không phải trùng lặp.
+// THEMES — 9 video + 4 ảnh nền chủ đề (Dialog Themes)
+// Đổi hẳn từ 9 ảnh sang video làm chủ đạo (Joey chốt 31/08/2026, sau khi
+// thử nghiệm hiệu năng OK — xem media-config.ts MediaItem.posterUrl).
+// Giữ lại 4 ảnh cũ còn hợp phong cách anime/cartoon (đã xác nhận với Joey
+// 25/08/2026), bỏ 5 ảnh còn lại (trùng góc văn phòng, ảnh chưa đặt tên,
+// moon landscape) để nhường chỗ cho video.
+// Mọi theme video đều bắt buộc có posterUrl — Cloudinary tự tạo bằng cách
+// đổi đuôi .mp4 → .jpg trên cùng URL, không cần upload ảnh riêng.
 // ============================================
 export const themeBackgrounds: MediaItem[] = [
   {
-    id: "office-space-cartoon",
-    name: "Office Space (Cartoon)",
-    url: "https://res.cloudinary.com/suha2h16/image/upload/f_auto,q_auto/v1787643273/beautiful-office-space-cartoon-style.jpg",
+    id: "chill-girl",
+    name: "Chill Girl",
+    type: "video",
+    posterUrl: "https://res.cloudinary.com/suha2h16/video/upload/f_auto,q_auto/v1788165119/Chill_Girl.jpg",
+    url: "https://res.cloudinary.com/suha2h16/video/upload/f_auto,q_auto/v1788165119/Chill_Girl.mp4",
+  },
+  {
+    id: "cat-with-rain",
+    name: "Cat with Rain",
+    type: "video",
+    posterUrl: "https://res.cloudinary.com/suha2h16/video/upload/f_auto,q_auto/v1788165119/Cat_With_Rain.jpg",
+    url: "https://res.cloudinary.com/suha2h16/video/upload/f_auto,q_auto/v1788165119/Cat_With_Rain.mp4",
+  },
+  {
+    id: "raining-outside",
+    name: "Raining Outside",
+    type: "video",
+    posterUrl: "https://res.cloudinary.com/suha2h16/video/upload/f_auto,q_auto/v1788165119/Raining_Outside.jpg",
+    url: "https://res.cloudinary.com/suha2h16/video/upload/f_auto,q_auto/v1788165119/Raining_Outside.mp4",
+  },
+  {
+    id: "cozy-home-video",
+    name: "Cozy Home",
+    type: "video",
+    posterUrl: "https://res.cloudinary.com/suha2h16/video/upload/f_auto,q_auto/v1788165117/Cozy_Home.jpg",
+    url: "https://res.cloudinary.com/suha2h16/video/upload/f_auto,q_auto/v1788165117/Cozy_Home.mp4",
+  },
+  {
+    id: "sunsight",
+    name: "Sunsight",
+    type: "video",
+    posterUrl: "https://res.cloudinary.com/suha2h16/video/upload/f_auto,q_auto/v1788165118/Sunsight.jpg",
+    url: "https://res.cloudinary.com/suha2h16/video/upload/f_auto,q_auto/v1788165118/Sunsight.mp4",
+  },
+  {
+    id: "room-rain-fireplace",
+    name: "Room, Rain & Fireplace",
+    type: "video",
+    posterUrl: "https://res.cloudinary.com/suha2h16/video/upload/f_auto,q_auto/v1788165117/Room_Rain_Fireplace.jpg",
+    url: "https://res.cloudinary.com/suha2h16/video/upload/f_auto,q_auto/v1788165117/Room_Rain_Fireplace.mp4",
+  },
+  {
+    id: "calm-with-cat",
+    name: "Calm with Cat",
+    type: "video",
+    posterUrl: "https://res.cloudinary.com/suha2h16/video/upload/f_auto,q_auto/v1788165115/Calm_With_Cat.jpg",
+    url: "https://res.cloudinary.com/suha2h16/video/upload/f_auto,q_auto/v1788165115/Calm_With_Cat.mp4",
+  },
+  {
+    id: "cafeterian",
+    name: "Cafeterian",
+    type: "video",
+    posterUrl: "https://res.cloudinary.com/suha2h16/video/upload/f_auto,q_auto/v1788165114/Cafeterian.jpg",
+    url: "https://res.cloudinary.com/suha2h16/video/upload/f_auto,q_auto/v1788165114/Cafeterian.mp4",
+  },
+  {
+    id: "cozy-cabin-rainy-day",
+    name: "Cozy Cabin Rainy Day",
+    type: "video",
+    posterUrl: "https://res.cloudinary.com/suha2h16/video/upload/f_auto,q_auto/v1788163628/Cozy_Cabin_Rainy_Day.jpg",
+    url: "https://res.cloudinary.com/suha2h16/video/upload/f_auto,q_auto/v1788163628/Cozy_Cabin_Rainy_Day.mp4",
   },
   {
     id: "cozy-home-interior-anime",
@@ -153,39 +214,9 @@ export const themeBackgrounds: MediaItem[] = [
     url: "https://res.cloudinary.com/suha2h16/image/upload/f_auto,q_auto/v1787643267/anime-style-cozy-home-interior-with-furnishings.jpg",
   },
   {
-    id: "untitled-theme",
-    name: "Untitled (cần đặt tên lại)",
-    url: "https://res.cloudinary.com/suha2h16/image/upload/f_auto,q_auto/v1787643263/images.jpg",
-  },
-  {
     id: "office-space-cartoon-3",
     name: "Office Space (Cartoon) 3",
     url: "https://res.cloudinary.com/suha2h16/image/upload/f_auto,q_auto/v1787643262/beautiful-office-space-cartoon-style_3.jpg",
-  },
-  {
-    id: "office-space-cartoon-2",
-    name: "Office Space (Cartoon) 2",
-    url: "https://res.cloudinary.com/suha2h16/image/upload/f_auto,q_auto/v1787643262/beautiful-office-space-cartoon-style_2.jpg",
-  },
-  {
-    id: "office-space-cartoon-1",
-    name: "Office Space (Cartoon) 1",
-    url: "https://res.cloudinary.com/suha2h16/image/upload/f_auto,q_auto/v1787643260/beautiful-office-space-cartoon-style_1.jpg",
-  },
-  {
-    id: "anime-moon-landscape",
-    name: "Moon Landscape",
-    url: "https://res.cloudinary.com/suha2h16/image/upload/f_auto,q_auto/v1787643259/anime-moon-landscape.jpg",
-  },
-  // Thử nghiệm theme dạng video (Joey upload 31/08/2026) — xem có đáng đánh
-  // đổi so với ảnh tĩnh không (CPU/pin khi chạy nền suốt phiên dài) trước
-  // khi quyết định làm thêm cho các theme khác.
-  {
-    id: "cozy-cabin-rainy-day",
-    name: "Cozy Cabin Rainy Day (Video)",
-    type: "video",
-    posterUrl: "https://res.cloudinary.com/suha2h16/video/upload/f_auto,q_auto/v1788163628/Cozy_Cabin_Rainy_Day.jpg",
-    url: "https://res.cloudinary.com/suha2h16/video/upload/f_auto,q_auto/v1788163628/Cozy_Cabin_Rainy_Day.mp4",
   },
 ];
 
