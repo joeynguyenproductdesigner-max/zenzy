@@ -84,7 +84,7 @@ export function Intro({
           <>
             <IntroGlow className="left-[80px] top-[10px]" />
             <div className="flex w-[640px] flex-col items-center text-center">
-              <p className="text-[80px] font-bold text-white">Zenzy</p>
+              <p className="text-[80px] leading-[100px] font-bold text-white">Zenzy</p>
               <div
                 className="grid overflow-hidden transition-[grid-template-rows] ease-linear"
                 style={{
