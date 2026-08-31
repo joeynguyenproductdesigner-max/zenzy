@@ -192,7 +192,14 @@ export function usePictureInPicture({
     drawVideoPipFrame(ctx, latestRef.current.status, latestRef.current.remainingSeconds);
 
     if (!video.srcObject) {
-      const stream = canvas.captureStream();
+      // Ép 30fps thay vì mặc định "chỉ phát khi canvas đổi" (canvas của
+      // mình chỉ vẽ lại ~1 lần/giây theo nhịp đếm ngược) — video phát thưa
+      // khiến Chromium/Arc không coi đây là media "đang phát" đủ liên tục,
+      // tự đóng PiP gần như ngay sau khi mở dù chưa hề chuyển tab. Đây là
+      // fix kỹ thuật độc lập với "auto-safety-net" đã bỏ ở PLAN — 30fps chỉ
+      // là tham số của captureStream, không kéo theo autoPictureInPicture
+      // hay bất kỳ hệ thống chạy nền nào khác.
+      const stream = canvas.captureStream(30);
       video.srcObject = stream;
       video.muted = true;
       await video.play().catch(() => {});
@@ -202,6 +209,7 @@ export function usePictureInPicture({
       // Gọi trực tiếp trong handler click (gesture thật) — không dùng
       // autoPictureInPicture, nên không cần safety-net chạy nền chờ sẵn.
       await video.requestPictureInPicture();
+      console.info("[Zenzy] video PiP opened");
       setMode("video");
     } catch (err) {
       console.error("[Zenzy] video requestPictureInPicture failed", err);
@@ -210,7 +218,12 @@ export function usePictureInPicture({
 
   const openPip = useCallback(() => {
     const hasDocumentPip = "documentPictureInPicture" in window;
-    if (hasDocumentPip && !isArcBrowser()) {
+    const arc = isArcBrowser();
+    // Log tạm để chẩn đoán báo cáo "PiP không theo tab trên Arc" — cho biết
+    // nhánh nào thực sự chạy, vì cả 2 nhánh đều không throw khi mở thành
+    // công nên im lặng không phân biệt được document vs video.
+    console.info("[Zenzy] openPip: hasDocumentPip =", hasDocumentPip, "isArcBrowser =", arc, "→ branch =", hasDocumentPip && !arc ? "document" : "video");
+    if (hasDocumentPip && !arc) {
       openDocumentPip();
     } else {
       openVideoPip();
@@ -252,6 +265,9 @@ export function usePictureInPicture({
     const video = videoRef.current;
     if (!video) return;
     const onLeavePip = () => {
+      console.info("[Zenzy] video PiP closed (leavepictureinpicture)", {
+        hidden: document.hidden,
+      });
       setMode((current) => (current === "video" ? null : current));
       if ("mediaSession" in navigator) {
         navigator.mediaSession.setActionHandler("play", null);
