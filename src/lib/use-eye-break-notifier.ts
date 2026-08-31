@@ -36,7 +36,9 @@ export function useEyeBreakNotifier({
   useEffect(() => {
     if (!isNotificationSupported()) return;
     if (Notification.permission !== "granted") return;
-    navigator.serviceWorker.register(SW_URL).catch(() => {});
+    navigator.serviceWorker
+      .register(SW_URL)
+      .catch((err) => console.error("[Zenzy] service worker registration failed", err));
   }, []);
 
   useEffect(() => {
@@ -83,17 +85,21 @@ export function useEyeBreakNotifier({
     if (Notification.permission !== "granted") return;
     if (!hiddenRef.current) return;
 
+    console.info("[Zenzy] work session ended while tab hidden — requesting a notification");
     navigator.serviceWorker.ready.then((registration) => {
-      registration.showNotification("Time to rest your eyes", {
-        body: `You've focused for ${workMinutes} minutes. A short break helps.`,
-        tag: NOTIFICATION_TAG,
-        requireInteraction: true,
-        // @ts-expect-error -- actions is valid on ServiceWorkerRegistration.showNotification but missing from the lib.dom NotificationOptions type
-        actions: [
-          { action: "snooze-5", title: "Snooze 5 min" },
-          { action: "take-break", title: "Take a break" },
-        ],
-      });
+      registration
+        .showNotification("Time to rest your eyes", {
+          body: `You've focused for ${workMinutes} minutes. A short break helps.`,
+          tag: NOTIFICATION_TAG,
+          requireInteraction: true,
+          // @ts-expect-error -- actions is valid on ServiceWorkerRegistration.showNotification but missing from the lib.dom NotificationOptions type
+          actions: [
+            { action: "snooze-5", title: "Snooze 5 min" },
+            { action: "take-break", title: "Take a break" },
+          ],
+        })
+        .then(() => console.info("[Zenzy] showNotification resolved"))
+        .catch((err) => console.error("[Zenzy] showNotification failed", err));
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- workMinutes chỉ dùng để soạn nội dung, không cần re-run khi đổi giữa chừng
   }, [status]);

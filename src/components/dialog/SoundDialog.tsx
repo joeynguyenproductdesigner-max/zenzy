@@ -68,19 +68,19 @@ function useLoopingAudio(volume: number) {
     setIsPlaying(false);
   };
 
-  const togglePlayback = () => {
-    const audio = audioRef.current;
-    if (!audio || !audio.src) return;
-    if (audio.paused) {
-      audio.play().catch(() => {});
-      setIsPlaying(true);
-    } else {
-      audio.pause();
-      setIsPlaying(false);
-    }
+  const pause = () => {
+    audioRef.current?.pause();
+    setIsPlaying(false);
   };
 
-  return { isPlaying, play, stop, togglePlayback };
+  const resume = () => {
+    const audio = audioRef.current;
+    if (!audio || !audio.src) return;
+    audio.play().catch(() => {});
+    setIsPlaying(true);
+  };
+
+  return { isPlaying, play, stop, pause, resume };
 }
 
 // Multi-track mixer, used for Sounds — any number of ambient sounds can
@@ -125,15 +125,15 @@ function useSoundMixer() {
     if (audio) audio.volume = volume;
   };
 
-  const togglePlayback = () => {
+  const pauseAll = () => {
+    audiosRef.current.forEach((audio) => audio.pause());
+    setIsPlaying(false);
+  };
+
+  const resumeAll = () => {
     if (activeIds.length === 0) return;
-    if (isPlaying) {
-      audiosRef.current.forEach((audio) => audio.pause());
-      setIsPlaying(false);
-    } else {
-      audiosRef.current.forEach((audio) => audio.play().catch(() => {}));
-      setIsPlaying(true);
-    }
+    audiosRef.current.forEach((audio) => audio.play().catch(() => {}));
+    setIsPlaying(true);
   };
 
   const clearAll = () => {
@@ -143,7 +143,7 @@ function useSoundMixer() {
     setIsPlaying(false);
   };
 
-  return { activeIds, volumes, toggle, setVolume, togglePlayback, isPlaying, clearAll };
+  return { activeIds, volumes, toggle, setVolume, pauseAll, resumeAll, isPlaying, clearAll };
 }
 
 export function SoundDialog({ open }: { open: boolean }) {
@@ -162,7 +162,17 @@ export function SoundDialog({ open }: { open: boolean }) {
 
   if (!open) return null;
 
-  const active = tab === "sounds" ? soundMixer : music;
+  const isPlaying = soundMixer.isPlaying || music.isPlaying;
+
+  const togglePlayAll = () => {
+    if (isPlaying) {
+      soundMixer.pauseAll();
+      music.pause();
+    } else {
+      soundMixer.resumeAll();
+      music.resume();
+    }
+  };
 
   const toggleMusic = (item: MediaItem) => {
     if (selectedMusicId === item.id) {
@@ -208,8 +218,8 @@ export function SoundDialog({ open }: { open: boolean }) {
           </button>
         </div>
         <div className="flex items-center gap-3">
-          <DialogIconButton onClick={active.togglePlayback} label="Play/Pause">
-            {active.isPlaying ? (
+          <DialogIconButton onClick={togglePlayAll} label="Play/Pause">
+            {isPlaying ? (
               <Pause className="size-5" />
             ) : (
               <Play className="size-5" />

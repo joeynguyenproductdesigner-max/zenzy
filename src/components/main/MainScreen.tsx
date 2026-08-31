@@ -107,7 +107,7 @@ export function MainScreen() {
 
       <div className="absolute inset-x-0 top-0 flex items-start justify-between px-16 pt-12">
         <div className="flex flex-col items-center whitespace-nowrap text-white">
-          <p className="text-[48px] font-black">Zenzy</p>
+          <p className="text-[48px] leading-[56px] font-black">Zenzy</p>
           <p className="text-[16px] text-white/80">Zen for your eyes</p>
         </div>
         <p className="whitespace-nowrap text-right text-[20px] font-medium italic text-white">
@@ -180,7 +180,11 @@ export function MainScreen() {
               setPermission(result);
               setNotifDismissed(true);
               if (result === "granted") {
-                navigator.serviceWorker.register("/sw.js").catch(() => {});
+                navigator.serviceWorker
+                  .register("/sw.js")
+                  .catch((err) =>
+                    console.error("[Zenzy] service worker registration failed", err)
+                  );
               }
             });
           }}
