@@ -124,6 +124,16 @@ export function MainScreen() {
             playsInline
             className="absolute inset-0 size-full object-cover"
           />
+        ) : background.type === "video" ? (
+          <video
+            key={background.url}
+            src={background.url}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 size-full object-cover"
+          />
         ) : (
           <Image
             src={background.url}
@@ -268,6 +278,7 @@ export function MainScreen() {
           status={session.status}
           remainingSeconds={session.remainingSeconds}
           backgroundUrl={background.url}
+          backgroundType={background.type}
           onStart={session.start}
           onPauseResume={session.status === "paused" ? session.resume : session.pause}
           onReset={session.reset}

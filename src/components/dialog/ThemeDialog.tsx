@@ -32,13 +32,24 @@ export function ThemeDialog({
               }`}
             >
               <div className="relative h-[135px] w-full overflow-hidden rounded-xl bg-white/5">
-                <Image
-                  src={theme.url}
-                  alt={theme.name}
-                  fill
-                  sizes="(max-width: 727px) 45vw, 318px"
-                  className="object-cover"
-                />
+                {theme.type === "video" ? (
+                  <video
+                    src={theme.url}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="absolute inset-0 size-full object-cover"
+                  />
+                ) : (
+                  <Image
+                    src={theme.url}
+                    alt={theme.name}
+                    fill
+                    sizes="(max-width: 727px) 45vw, 318px"
+                    className="object-cover"
+                  />
+                )}
               </div>
             </div>
             <p className="truncate text-[13px] font-semibold text-white">

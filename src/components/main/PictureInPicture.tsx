@@ -60,6 +60,7 @@ function PipContent({
   status,
   remainingSeconds,
   backgroundUrl,
+  backgroundType,
   onStart,
   onPauseResume,
   onReset,
@@ -71,6 +72,7 @@ function PipContent({
   status: PipStatus;
   remainingSeconds: number;
   backgroundUrl: string;
+  backgroundType?: "image" | "video";
   onStart: () => void;
   onPauseResume: () => void;
   onReset: () => void;
@@ -83,12 +85,24 @@ function PipContent({
     <div className="relative flex size-full min-h-screen flex-col items-center justify-center gap-8 overflow-hidden bg-[#14101f] px-6 py-4">
       {/* next/image không dùng được — nội dung này render vào document của
           cửa sổ PiP (khác document/window với trang chính) qua portal. */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={backgroundUrl}
-        alt=""
-        className="absolute inset-0 size-full object-cover"
-      />
+      {backgroundType === "video" ? (
+        <video
+          key={backgroundUrl}
+          src={backgroundUrl}
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 size-full object-cover"
+        />
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={backgroundUrl}
+          alt=""
+          className="absolute inset-0 size-full object-cover"
+        />
+      )}
       <div className="absolute inset-0 bg-black/40" />
 
       <div className="relative flex w-full items-center justify-between">
@@ -182,6 +196,7 @@ export function PipPortal({
   status: PipStatus;
   remainingSeconds: number;
   backgroundUrl: string;
+  backgroundType?: "image" | "video";
   onStart: () => void;
   onPauseResume: () => void;
   onReset: () => void;

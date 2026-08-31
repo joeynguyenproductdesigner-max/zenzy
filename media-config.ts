@@ -10,6 +10,9 @@ export interface MediaItem {
   id: string;
   name: string;
   url: string;
+  // Chỉ dùng cho themeBackgrounds — mặc định "image" nếu không set. Theme
+  // "video" tự loop/muted/autoplay thay vì ảnh tĩnh (đang thử nghiệm).
+  type?: "image" | "video";
 }
 
 // ============================================
@@ -166,6 +169,15 @@ export const themeBackgrounds: MediaItem[] = [
     id: "anime-moon-landscape",
     name: "Moon Landscape",
     url: "https://res.cloudinary.com/suha2h16/image/upload/f_auto,q_auto/v1787643259/anime-moon-landscape.jpg",
+  },
+  // Thử nghiệm theme dạng video (Joey upload 31/08/2026) — xem có đáng đánh
+  // đổi so với ảnh tĩnh không (CPU/pin khi chạy nền suốt phiên dài) trước
+  // khi quyết định làm thêm cho các theme khác.
+  {
+    id: "cute-cat-twitch-lofi",
+    name: "Cute Cat Lofi (Video)",
+    type: "video",
+    url: "https://res.cloudinary.com/suha2h16/video/upload/f_auto,q_auto/v1788163126/Cute_Twitch_Screens_Cat_Twitch_Twitch_Overlay_Lofi_Cute_Livestream_Graphics.mp4",
   },
 ];
 
