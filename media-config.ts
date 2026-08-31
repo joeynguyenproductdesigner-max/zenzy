@@ -135,6 +135,15 @@ export const ambientSounds: MediaItem[] = [
 // đổi đuôi .mp4 → .jpg trên cùng URL, không cần upload ảnh riêng.
 // ============================================
 export const themeBackgrounds: MediaItem[] = [
+  // Đầu mảng = default theme (xem MainScreen.tsx: useLocalStorage fallback
+  // dùng themeBackgrounds[0].id) — Joey chọn Cozy Cabin Rainy Day làm mặc định.
+  {
+    id: "cozy-cabin-rainy-day",
+    name: "Cozy Cabin Rainy Day",
+    type: "video",
+    posterUrl: "https://res.cloudinary.com/suha2h16/video/upload/f_auto,q_auto/v1788163628/Cozy_Cabin_Rainy_Day.jpg",
+    url: "https://res.cloudinary.com/suha2h16/video/upload/f_auto,q_auto/v1788163628/Cozy_Cabin_Rainy_Day.mp4",
+  },
   {
     id: "chill-girl",
     name: "Chill Girl",
@@ -190,13 +199,6 @@ export const themeBackgrounds: MediaItem[] = [
     type: "video",
     posterUrl: "https://res.cloudinary.com/suha2h16/video/upload/f_auto,q_auto/v1788165114/Cafeterian.jpg",
     url: "https://res.cloudinary.com/suha2h16/video/upload/f_auto,q_auto/v1788165114/Cafeterian.mp4",
-  },
-  {
-    id: "cozy-cabin-rainy-day",
-    name: "Cozy Cabin Rainy Day",
-    type: "video",
-    posterUrl: "https://res.cloudinary.com/suha2h16/video/upload/f_auto,q_auto/v1788163628/Cozy_Cabin_Rainy_Day.jpg",
-    url: "https://res.cloudinary.com/suha2h16/video/upload/f_auto,q_auto/v1788163628/Cozy_Cabin_Rainy_Day.mp4",
   },
   {
     id: "cozy-home-interior-anime",
