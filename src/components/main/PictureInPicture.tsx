@@ -1,8 +1,6 @@
 import { createPortal } from "react-dom";
 import { formatCountdown } from "@/lib/work-durations";
 import { RefreshCwIcon } from "@/icons/RefreshCwIcon";
-import { ArrowLeftUpIcon } from "@/icons/ArrowLeftUpIcon";
-import { CloseIcon } from "@/icons/CloseIcon";
 
 // Trạng thái mà cửa sổ Document PiP mirror được — khớp 3 frame Figma
 // (Chưa start / Đang chạy / Khi đến giờ nghỉ mắt). "break" không có
@@ -31,27 +29,6 @@ export function PipActiveNotice({ onClose }: { onClose: () => void }) {
   );
 }
 
-function PipHeaderButton({
-  onClick,
-  label,
-  children,
-}: {
-  onClick: () => void;
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      className="flex size-10 shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/10 text-white"
-    >
-      {children}
-    </button>
-  );
-}
-
 // Nội dung render vào document của cửa sổ Document PiP qua React portal —
 // cùng cây component với MainScreen nên state (countdown, status) luôn
 // đồng bộ. Chỉ Chrome/Edge dùng được PiP (CLAUDE.md quyết định #2) — Arc
@@ -66,8 +43,6 @@ function PipContent({
   onReset,
   onSnooze,
   onTakeBreak,
-  onRestore,
-  onClose,
 }: {
   status: PipStatus;
   remainingSeconds: number;
@@ -78,8 +53,6 @@ function PipContent({
   onReset: () => void;
   onSnooze: () => void;
   onTakeBreak: () => void;
-  onRestore: () => void;
-  onClose: () => void;
 }) {
   return (
     <div className="relative flex size-full min-h-screen flex-col items-center justify-center gap-8 overflow-hidden bg-[#14101f] px-6 py-4">
@@ -105,15 +78,6 @@ function PipContent({
       )}
       <div className="absolute inset-0 bg-black/40" />
 
-      <div className="relative flex w-full items-center justify-between">
-        <PipHeaderButton onClick={onRestore} label="Back to Zenzy tab">
-          <ArrowLeftUpIcon size={24} />
-        </PipHeaderButton>
-        <PipHeaderButton onClick={onClose} label="Close Picture-in-Picture">
-          <CloseIcon size={24} />
-        </PipHeaderButton>
-      </div>
-
       {status === "prompt" ? (
         <div className="relative flex flex-col items-center gap-3">
           <div className="flex size-16 items-center justify-center rounded-[32px] border border-white/20 bg-white/[0.08] shadow-[0_8px_24px_rgba(94,59,238,0.2)] backdrop-blur-[12px]">
@@ -126,14 +90,14 @@ function PipContent({
             <button
               type="button"
               onClick={onSnooze}
-              className="flex flex-1 items-center justify-center rounded-full border border-white/20 bg-white/10 px-6 text-[16px] font-medium text-white"
+              className="flex flex-1 items-center justify-center rounded-full border border-white/20 bg-white/10 px-6 text-[14px] font-medium text-white"
             >
               Snooze 5 min
             </button>
             <button
               type="button"
               onClick={onTakeBreak}
-              className="flex flex-1 items-center justify-center rounded-full bg-[#5e3bee] px-6 text-[16px] font-semibold text-white"
+              className="flex flex-1 items-center justify-center rounded-full bg-[#5e3bee] px-6 text-[14px] font-medium text-white"
             >
               Take a break
             </button>
@@ -141,7 +105,7 @@ function PipContent({
         </div>
       ) : (
         <div className="relative flex flex-col items-center gap-4">
-          <p className="text-[64px] font-black leading-none text-white">
+          <p className="text-[72px] font-black leading-none text-white">
             {formatCountdown(remainingSeconds)}
           </p>
           <div className="flex items-center gap-4">
@@ -149,7 +113,7 @@ function PipContent({
               <button
                 type="button"
                 onClick={onStart}
-                className="rounded-full bg-[#5e3bee] px-9 py-3 text-[16px] font-bold text-white"
+                className="rounded-full bg-[#5e3bee] px-9 py-3 text-[14px] font-medium text-white"
               >
                 Start working
               </button>
@@ -158,7 +122,7 @@ function PipContent({
               <button
                 type="button"
                 onClick={onPauseResume}
-                className="rounded-full bg-[#c2b4fb] px-9 py-3 text-[16px] font-bold text-[#5e3bee]"
+                className="rounded-full bg-[#c2b4fb] px-9 py-3 text-[14px] font-medium text-[#5e3bee]"
               >
                 Pause
               </button>
@@ -167,7 +131,7 @@ function PipContent({
               <button
                 type="button"
                 onClick={onPauseResume}
-                className="rounded-full bg-[#5e3bee] px-9 py-3 text-[16px] font-bold text-white"
+                className="rounded-full bg-[#5e3bee] px-9 py-3 text-[14px] font-medium text-white"
               >
                 Continue
               </button>
@@ -176,7 +140,7 @@ function PipContent({
               type="button"
               onClick={onReset}
               aria-label="Reset"
-              className="flex size-11 items-center justify-center rounded-full bg-black/25"
+              className="flex size-11 items-center justify-center rounded-full border border-white/40 bg-white/20 text-white hover:bg-white/30"
             >
               <RefreshCwIcon size={16} />
             </button>
@@ -201,8 +165,6 @@ export function PipPortal({
   onReset: () => void;
   onSnooze: () => void;
   onTakeBreak: () => void;
-  onRestore: () => void;
-  onClose: () => void;
 }) {
   return createPortal(<PipContent {...contentProps} />, pipWindow.document.body);
 }

@@ -95,7 +95,6 @@ export function MainScreen() {
     pipWindow,
     openPip,
     closePip,
-    restorePip,
   } = usePictureInPicture();
   // PiP mirror ready/working/paused/prompt khi đã mở (đúng 4 frame Figma) —
   // chỉ đóng khi phiên rời sang trạng thái không có mockup PiP (break,
@@ -296,8 +295,6 @@ export function MainScreen() {
           onReset={session.reset}
           onSnooze={session.snooze}
           onTakeBreak={session.takeBreak}
-          onRestore={restorePip}
-          onClose={closePip}
         />
       )}
     </div>

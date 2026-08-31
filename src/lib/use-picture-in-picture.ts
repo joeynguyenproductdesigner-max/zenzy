@@ -89,11 +89,6 @@ export function usePictureInPicture() {
     window.documentPictureInPicture?.window?.close();
   }, []);
 
-  const restorePip = useCallback(() => {
-    window.focus();
-    closePip();
-  }, [closePip]);
-
   const openPip = useCallback(async () => {
     if (!window.documentPictureInPicture) return;
     try {
@@ -119,5 +114,5 @@ export function usePictureInPicture() {
     }
   }, []);
 
-  return { supported, mode, pipWindow, openPip, closePip, restorePip };
+  return { supported, mode, pipWindow, openPip, closePip };
 }
