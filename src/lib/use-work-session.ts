@@ -176,6 +176,15 @@ export function useWorkSession() {
     setStatus("ready");
     setRemainingSeconds(workMinutes * 60);
   }, [workMinutes]);
+  // Khác reset() ở chỗ đưa cả workMinutes về mặc định gốc (60), không giữ
+  // mốc thời gian người dùng đã chọn trước đó — dùng cho nút "về lại từ
+  // đầu" (logo Zenzy), không phải nút Reset thường trong ChronoView/PiP.
+  const resetToDefault = useCallback(() => {
+    clearRecovery();
+    setStatus("ready");
+    setWorkMinutes(DEFAULT_WORK_MINUTES);
+    setRemainingSeconds(DEFAULT_WORK_MINUTES * 60);
+  }, [setWorkMinutes]);
   const resumeSession = useCallback(() => {
     if (!recovery) return;
     clearRecovery();
@@ -216,6 +225,7 @@ export function useWorkSession() {
     pause,
     resume,
     reset,
+    resetToDefault,
     snooze,
     takeBreak,
     skipBreak,

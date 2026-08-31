@@ -44,6 +44,13 @@ export function MainScreen() {
   const session = useWorkSession();
   const [themesOpen, setThemesOpen] = useState(false);
   const [soundsOpen, setSoundsOpen] = useState(false);
+  // undefined = chưa bấm lần nào (không tự chạy lúc mount, tránh xoá mất
+  // sounds/music vừa khôi phục từ localStorage) — chỉ đổi khi bấm logo Zenzy.
+  const [soundResetSignal, setSoundResetSignal] = useState<number>();
+  const resetToStart = () => {
+    session.resetToDefault();
+    setSoundResetSignal((n) => (n ?? 0) + 1);
+  };
 
   const [notifDismissed, setNotifDismissed] = useLocalStorage<boolean>(
     "zenzy:notif-prompt-dismissed",
@@ -150,7 +157,7 @@ export function MainScreen() {
       <div className="absolute inset-x-0 top-0 flex items-start justify-between px-16 pt-12">
         <button
           type="button"
-          onClick={session.reset}
+          onClick={resetToStart}
           aria-label="Reset to start"
           className="flex flex-col items-center whitespace-nowrap text-white"
         >
@@ -260,7 +267,7 @@ export function MainScreen() {
             selectedThemeId={themeId}
             onSelectTheme={setThemeId}
           />
-          <SoundDialog open={soundsOpen} />
+          <SoundDialog open={soundsOpen} resetSignal={soundResetSignal} />
         </div>
       </div>
 

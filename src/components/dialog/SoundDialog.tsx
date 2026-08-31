@@ -146,7 +146,16 @@ function useSoundMixer() {
   return { activeIds, volumes, toggle, setVolume, pauseAll, resumeAll, isPlaying, clearAll };
 }
 
-export function SoundDialog({ open }: { open: boolean }) {
+export function SoundDialog({
+  open,
+  resetSignal,
+}: {
+  open: boolean;
+  // Đổi giá trị (vd tăng dần) để ép tắt hết nhạc/sound đang phát — dùng khi
+  // bấm logo Zenzy "về lại từ đầu". Không dùng open/close vì component này
+  // luôn mounted (audio phải sống xuyên suốt lúc đóng dialog).
+  resetSignal?: number;
+}) {
   const [tab, setTab] = useState<Tab>("sounds");
   const [selectedMusicId, setSelectedMusicId] = useLocalStorage<string | null>(
     "zenzy:music",
@@ -159,6 +168,14 @@ export function SoundDialog({ open }: { open: boolean }) {
 
   const soundMixer = useSoundMixer();
   const music = useLoopingAudio(musicVolume);
+
+  useEffect(() => {
+    if (resetSignal === undefined) return;
+    soundMixer.clearAll();
+    setSelectedMusicId(null);
+    music.stop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- chỉ muốn chạy khi resetSignal đổi (tín hiệu từ ngoài), soundMixer/music là object mới mỗi render nên không đưa vào deps
+  }, [resetSignal]);
 
   if (!open) return null;
 

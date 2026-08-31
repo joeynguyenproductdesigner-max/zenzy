@@ -24,3 +24,17 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
+
+/* Tailwind Preflight đặt cursor: default cho button (khớp hành vi trình
+   duyệt gốc) — đổi lại thành pointer để phân biệt rõ phần tử bấm được,
+   áp dụng chung cho mọi nút/link, không cần thêm class từng chỗ. */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+a {
+  cursor: pointer;
+}
+
+button:disabled,
+[role="button"][aria-disabled="true"] {
+  cursor: not-allowed;
+}
