@@ -31,9 +31,9 @@ export function GreetingHeader({
     : timeGreeting;
 
   return (
-    <div className="w-full text-center font-semibold text-[40px] leading-[1.2] text-white">
+    <div className="w-full text-center font-semibold text-[48px] leading-[1.2] text-white">
       <p>{greetingWithName(greeting, name || undefined)}</p>
-      <p className="mt-1 text-[16px] leading-[1.2]">{greeting.subtitle}</p>
+      <p className="mt-1 text-[18px] leading-[1.2]">{greeting.subtitle}</p>
     </div>
   );
 }
