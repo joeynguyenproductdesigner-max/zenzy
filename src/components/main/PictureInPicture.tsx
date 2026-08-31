@@ -2,10 +2,12 @@ import { createPortal } from "react-dom";
 import { formatCountdown } from "@/lib/work-durations";
 import { RefreshCwIcon } from "@/icons/RefreshCwIcon";
 
-// Trạng thái mà cửa sổ Document PiP mirror được — khớp 3 frame Figma
-// (Chưa start / Đang chạy / Khi đến giờ nghỉ mắt). "break" không có
-// mockup PiP riêng nên PiP tự đóng khi phiên vào break (xem MainScreen).
-export type PipStatus = "ready" | "working" | "paused" | "prompt";
+// Trạng thái mà cửa sổ Document PiP mirror được. "break" không có mockup
+// PiP riêng từ Figma, nhưng thay vì điều hướng tab chính sang S4 (không
+// chắc chắn hoạt động đúng, xem bug-report-giai-doan-9.md BUG-02) thì PiP
+// tự mirror luôn màn nghỉ mắt rút gọn — đơn giản hơn, dùng đúng pattern đã
+// có sẵn cho 4 trạng thái kia, không cần thêm cơ chế giao tiếp nào mới.
+export type PipStatus = "ready" | "working" | "paused" | "prompt" | "break";
 
 // Panel hiện trên tab chính khi PiP đang mở — thay chỗ ChronoView, vì lúc
 // này điều khiển thật đang nằm ở cửa sổ nổi.
@@ -43,6 +45,7 @@ function PipContent({
   onReset,
   onSnooze,
   onTakeBreak,
+  onSkip,
 }: {
   status: PipStatus;
   remainingSeconds: number;
@@ -53,6 +56,7 @@ function PipContent({
   onReset: () => void;
   onSnooze: () => void;
   onTakeBreak: () => void;
+  onSkip: () => void;
 }) {
   return (
     <div className="relative flex size-full min-h-screen flex-col items-center justify-center gap-8 overflow-hidden bg-[#14101f] px-6 py-4">
@@ -86,22 +90,38 @@ function PipContent({
           <p className="text-center text-[24px] font-bold text-white">
             Time to rest your eyes
           </p>
-          <div className="flex h-[47px] w-full items-center gap-4">
+          <div className="flex w-full items-center gap-4">
             <button
               type="button"
               onClick={onSnooze}
-              className="flex flex-1 items-center justify-center whitespace-nowrap rounded-full border border-white/20 bg-white/10 px-6 text-[14px] font-medium text-white"
+              className="flex flex-1 items-center justify-center whitespace-nowrap rounded-full border border-white/20 bg-white/10 px-6 py-3 text-[14px] font-medium text-white"
             >
               Snooze 5 min
             </button>
             <button
               type="button"
               onClick={onTakeBreak}
-              className="flex flex-1 items-center justify-center whitespace-nowrap rounded-full bg-[#5e3bee] px-6 text-[14px] font-medium text-white"
+              className="flex flex-1 items-center justify-center whitespace-nowrap rounded-full bg-[#5e3bee] px-6 py-3 text-[14px] font-medium text-white"
             >
               Take a break
             </button>
           </div>
+        </div>
+      ) : status === "break" ? (
+        <div className="relative flex flex-col items-center gap-4">
+          <p className="text-center text-[16px] font-semibold text-white">
+            Time to look away
+          </p>
+          <p className="text-[64px] font-black leading-none text-white">
+            {formatCountdown(remainingSeconds)}
+          </p>
+          <button
+            type="button"
+            onClick={onSkip}
+            className="rounded-full bg-[#5e3bee] px-9 py-3 text-[14px] font-medium text-white"
+          >
+            Skip break
+          </button>
         </div>
       ) : (
         <div className="relative flex flex-col items-center gap-4">
@@ -165,6 +185,7 @@ export function PipPortal({
   onReset: () => void;
   onSnooze: () => void;
   onTakeBreak: () => void;
+  onSkip: () => void;
 }) {
   return createPortal(<PipContent {...contentProps} />, pipWindow.document.body);
 }

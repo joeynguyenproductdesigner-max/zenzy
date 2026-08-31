@@ -20,15 +20,20 @@ import { HudControls } from "./HudControls";
 import { PipActiveNotice, PipPortal, type PipStatus } from "./PictureInPicture";
 import type { SessionStatus } from "@/lib/use-work-session";
 
-// PiP mirror 4 trạng thái có mockup Figma (ready/working/paused/prompt) —
-// "break"/"recovery" không có mockup PiP nên tự đóng khi phiên vào 2
-// trạng thái này (xem effect closePip bên dưới).
+// PiP mirror 5 trạng thái (ready/working/paused/prompt/break) — "break"
+// không có mockup PiP riêng từ Figma nhưng vẫn mirror bằng bản rút gọn
+// thay vì điều hướng tab chính sang S4 (không chắc chắn hoạt động đúng,
+// xem bug-report-giai-doan-9.md BUG-02 — PiP tự mirror đơn giản hơn nhiều
+// so với thêm cơ chế điều hướng cross-window). Chỉ "recovery" tự đóng PiP
+// (xem effect closePip bên dưới) — không có mockup, cũng không hợp lý mở
+// PiP giữa lúc đang hỏi resume phiên cũ.
 function isPipStatus(status: SessionStatus): status is PipStatus {
   return (
     status === "ready" ||
     status === "working" ||
     status === "paused" ||
-    status === "prompt"
+    status === "prompt" ||
+    status === "break"
   );
 }
 
@@ -96,9 +101,9 @@ export function MainScreen() {
     openPip,
     closePip,
   } = usePictureInPicture();
-  // PiP mirror ready/working/paused/prompt khi đã mở (đúng 4 frame Figma) —
-  // chỉ đóng khi phiên rời sang trạng thái không có mockup PiP (break,
-  // recovery), tránh cửa sổ nổi hiện nội dung không có thiết kế tương ứng.
+  // PiP mirror cả 5 trạng thái (kể cả break) khi đã mở — chỉ đóng lúc phiên
+  // sang "recovery" (không có mockup, không hợp lý mở PiP giữa lúc hỏi
+  // resume phiên cũ).
   useEffect(() => {
     if (!isPipStatus(session.status)) {
       closePip();
@@ -190,6 +195,11 @@ export function MainScreen() {
               onSnooze={session.snooze}
               onTakeBreak={session.takeBreak}
             />
+          ) : session.status === "break" ? (
+            <BreakView
+              remainingSeconds={session.remainingSeconds}
+              onSkip={session.skipBreak}
+            />
           ) : (
             <ChronoView
               status={session.status}
@@ -204,16 +214,9 @@ export function MainScreen() {
               onOpenPip={openPip}
             />
           ))}
-
-        {session.status === "break" && (
-          <BreakView
-            remainingSeconds={session.remainingSeconds}
-            onSkip={session.skipBreak}
-          />
-        )}
       </div>
 
-      {session.status === "break" && (
+      {session.status === "break" && !pipMode && (
         <p className="absolute bottom-12 left-16 text-[16px] text-[#a0a5b5]">
           Based on the 20-20-20 rule — American Optometric Association
         </p>
@@ -288,13 +291,16 @@ export function MainScreen() {
           pipWindow={pipWindow}
           status={session.status}
           remainingSeconds={session.remainingSeconds}
-          backgroundUrl={background.url}
-          backgroundType={background.type}
+          backgroundUrl={
+            session.status === "break" ? kineticVisual.url : background.url
+          }
+          backgroundType={session.status === "break" ? "video" : background.type}
           onStart={session.start}
           onPauseResume={session.status === "paused" ? session.resume : session.pause}
           onReset={session.reset}
           onSnooze={session.snooze}
           onTakeBreak={session.takeBreak}
+          onSkip={session.skipBreak}
         />
       )}
     </div>
