@@ -11,23 +11,23 @@
 - Ngôn ngữ UI: tiếng Anh (theo đúng mockup Figma hiện tại). Tiếng Việt để Phase 2.
 - Nguyên tắc xuyên suốt: **không ép buộc** — mọi cơ chế nhắc nghỉ đều cho phép snooze/skip, ngôn ngữ UX luôn nhẹ nhàng, không dùng giọng điệu ép năng suất.
 
-## Roadmap (Giai đoạn 7, v3 — đã duyệt vai trò C)
+## Roadmap (Giai đoạn 7, v3 — đã duyệt vai trò C) — ĐÃ HOÀN THÀNH CẢ 9 SPRINT (31/08/2026)
 
 9 sprint, ~8 tuần (nhịp 20 giờ/tuần), đã gồm 1 tuần buffer sau sprint rủi ro kỹ thuật cao nhất:
 
-| Sprint | Nội dung | FR |
-|---|---|---|
-| 0 | Setup Next.js + Tailwind + Vercel | Nền tảng |
-| 1 | Dialog Themes + Sounds/Music (đẩy sớm) | FR-05, FR-06 |
-| 2 | Main screen 3 trạng thái + time-tabs + câu chào | FR-01, FR-02, FR-08 |
-| 3 | S0 + Service Worker + S3 (3 kịch bản notification) | FR-03 |
-| 4 | **[BUFFER]** dự phòng rủi ro Sprint 3 | — |
-| 5 | S4 — màn hình nghỉ mắt (video kinetic) | FR-04 |
-| 6 | S5 — session recovery | — |
-| 7 | PiP widget | FR-09 |
-| 8 | QA đa trình duyệt | NFR-04 |
+| Sprint | Nội dung | FR | Trạng thái |
+|---|---|---|---|
+| 0 | Setup Next.js + Tailwind + Vercel | Nền tảng | ✅ Xong |
+| 1 | Dialog Themes + Sounds/Music (đẩy sớm) | FR-05, FR-06 | ✅ Xong |
+| 2 | Main screen 3 trạng thái + time-tabs + câu chào | FR-01, FR-02, FR-08 | ✅ Xong |
+| 3 | S0 + Service Worker + S3 (3 kịch bản notification) | FR-03 | ✅ Xong |
+| 4 | **[BUFFER]** dự phòng rủi ro Sprint 3 | — | Không cần dùng tới |
+| 5 | S4 — màn hình nghỉ mắt (video kinetic) | FR-04 | ✅ Xong |
+| 6 | S5 — session recovery | — | ✅ Xong |
+| 7 | PiP widget | FR-09 | ✅ Xong (Chrome/Edge; Arc không hỗ trợ, xem quyết định #2) |
+| 8 | QA đa trình duyệt | NFR-04 | ✅ Xong phần tự động hoá được (xem "Việc còn mở") |
 
-**Build từng sprint một, không nhảy cóc** — xác nhận xong 1 sprint (chạy thử được, đúng deliverable) mới sang sprint kế tiếp.
+**Build từng sprint một, không nhảy cóc** — xác nhận xong 1 sprint (chạy thử được, đúng deliverable) mới sang sprint kế tiếp. Đã áp dụng đúng nguyên tắc này xuyên suốt — mọi sprint đều test/verify trước khi qua sprint kế.
 
 ## Media Assets — dùng `media-config.ts`, KHÔNG hard-code link
 
@@ -60,23 +60,26 @@ Khi build từng màn hình, **dùng link riêng (copy link to selection) của 
 6. **Kinetic visual (S4):** video loop, muted, autoplay — URL lấy từ `media-config.ts` (`kineticVisual.url`), không hard-code.
 7. **Mốc thời gian làm việc sâu:** 5 lựa chọn 20/45/60/90/120 phút, mặc định 60. Thời gian nghỉ tính tỷ lệ theo bảng ở Giai đoạn 2 (không cố định 1 mức nghỉ cho mọi mốc).
 8. **Nguồn trích dẫn y khoa:** chỉ dùng American Optometric Association (AOA — nguồn chính) và American Academy of Ophthalmology (AAO — nguồn phụ). Không tự bịa số liệu y khoa.
+9. **Chỉ desktop, không cần responsive mobile.** Joey xác nhận (31/08/2026, lúc QA Sprint 8) — UI dùng px cố định lớn theo đúng canvas Figma gốc (1440×960), vỡ layout ở viewport nhỏ là có chủ đích, không phải bug. Đối tượng dùng Zenzy đang ngồi máy tính, không phải điện thoại. Không tự ý thêm breakpoint/responsive trừ khi Joey đổi ý.
 
 ## 6 màn hình / thành phần chính
 
 | Mã | Tên | Trạng thái |
 |---|---|---|
-| S0 | Xin quyền thông báo | Có mockup Figma |
-| Main | Màn hình chính (Sẵn sàng / Đang làm việc / Đang nghỉ) | Có mockup Figma |
-| PiP | Khung đồng hồ nổi | Có mockup Figma |
-| Dialog | Themes / Sounds / Music | Có mockup Figma + media đã sẵn sàng (`media-config.ts`) |
-| S3 | Thông báo đẩy (3 kịch bản) | Có mockup Figma |
-| S4 | Màn hình nghỉ mắt | Có mockup Figma + video đã sẵn sàng (`media-config.ts`) |
-| S5 | Tiếp tục phiên cũ | Có mockup Figma |
+| S0 | Xin quyền thông báo | ✅ Đã build, đã test |
+| Main | Màn hình chính (Sẵn sàng / Đang làm việc / Đang nghỉ) | ✅ Đã build, đã test |
+| PiP | Khung đồng hồ nổi | ✅ Đã build (Chrome/Edge), đã test |
+| Dialog | Themes / Sounds / Music | ✅ Đã build, đã test — Themes giờ có cả video (9 video + 4 ảnh) |
+| S3 | Thông báo đẩy (3 kịch bản) | ✅ Đã build, đã test |
+| S4 | Màn hình nghỉ mắt | ✅ Đã build, đã test — icon mắt là Lottie animation |
+| S5 | Tiếp tục phiên cũ | ✅ Đã build, đã test |
 
 ## Việc còn mở
 
-- Không còn việc chặn tiến độ. Asset media (ảnh/âm thanh/video) đã đầy đủ trong `media-config.ts` — mục "Việc còn mở" ở bản CLAUDE.md trước đó (link asset video, danh sách âm thanh) đã được giải quyết (25/08/2026).
-- Timeline dự án hiện là **~8 tuần** (BRD v3, đã gồm buffer) — nếu Sprint 3 (Service Worker/Notification) trượt tiến độ quá phần buffer, cần báo lại PM để cân nhắc cắt giảm phạm vi thay vì âm thầm kéo dài.
+- Đã hoàn thành cả 9 sprint theo roadmap. Sprint 8 (QA) đã tự test được trong sandbox: toàn luồng chính không lỗi console, keyboard accessibility ok, session recovery đúng cả 2 nhánh (<2h/>2h).
+- **Còn cần Joey tự verify trên trình duyệt/thiết bị thật** (sandbox chỉ có 1 Chromium): Safari desktop (đặc biệt cảnh báo giới hạn notification, quyết định #4), Arc (PiP đã ẩn đúng chưa), Firefox nếu cần hỗ trợ, Chrome/Edge thật (PiP style).
+- Production: `https://zenzy-seven.vercel.app` (hoặc domain mới nếu Joey đã đổi) — Deployment Protection đã tắt, public, có thể gửi người khác trải nghiệm.
+- Không còn việc chặn tiến độ khác. Asset media (ảnh/âm thanh/video) đã đầy đủ trong `media-config.ts`.
 
 ## Tài liệu tham khảo đầy đủ
 
