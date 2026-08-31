@@ -13,7 +13,7 @@ export function BreakView({
 }) {
   return (
     <div className="flex flex-col items-center gap-6">
-      <div className="flex size-[120px] items-center justify-center rounded-[60px] border-[1.875px] border-white/20 bg-white/[0.08] shadow-[0_15px_45px_rgba(94,59,238,0.2)] backdrop-blur-[22.5px]">
+      <div className="flex size-[120px] items-center justify-center rounded-[60px]">
         <Lottie src={eyesAnimation} loop autoplay className="size-20" />
       </div>
       <div className="flex flex-col items-center gap-1 text-center text-white">
