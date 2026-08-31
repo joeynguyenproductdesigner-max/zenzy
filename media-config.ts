@@ -11,8 +11,15 @@ export interface MediaItem {
   name: string;
   url: string;
   // Chỉ dùng cho themeBackgrounds — mặc định "image" nếu không set. Theme
-  // "video" tự loop/muted/autoplay thay vì ảnh tĩnh (đang thử nghiệm).
+  // "video" tự loop/muted/autoplay khi làm nền chính/PiP, nhưng lưới chọn
+  // theme (ThemeDialog) luôn hiện posterUrl (ảnh tĩnh) — 10 video autoplay
+  // cùng lúc trong lưới sẽ rất nặng máy, xem thảo luận với Joey 31/08/2026.
   type?: "image" | "video";
+  // Bắt buộc khi type === "video" — dùng cho thumbnail lưới chọn theme.
+  // Cloudinary tự tạo frame JPG từ video chỉ bằng cách đổi đuôi .mp4→.jpg
+  // trên cùng URL (giữ nguyên path /video/upload/...), không cần upload
+  // ảnh riêng.
+  posterUrl?: string;
 }
 
 // ============================================
@@ -174,10 +181,11 @@ export const themeBackgrounds: MediaItem[] = [
   // đổi so với ảnh tĩnh không (CPU/pin khi chạy nền suốt phiên dài) trước
   // khi quyết định làm thêm cho các theme khác.
   {
-    id: "cute-cat-twitch-lofi",
-    name: "Cute Cat Lofi (Video)",
+    id: "cozy-cabin-rainy-day",
+    name: "Cozy Cabin Rainy Day (Video)",
     type: "video",
-    url: "https://res.cloudinary.com/suha2h16/video/upload/f_auto,q_auto/v1788163126/Cute_Twitch_Screens_Cat_Twitch_Twitch_Overlay_Lofi_Cute_Livestream_Graphics.mp4",
+    posterUrl: "https://res.cloudinary.com/suha2h16/video/upload/f_auto,q_auto/v1788163628/Cozy_Cabin_Rainy_Day.jpg",
+    url: "https://res.cloudinary.com/suha2h16/video/upload/f_auto,q_auto/v1788163628/Cozy_Cabin_Rainy_Day.mp4",
   },
 ];
 

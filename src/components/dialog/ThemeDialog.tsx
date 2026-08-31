@@ -32,24 +32,16 @@ export function ThemeDialog({
               }`}
             >
               <div className="relative h-[135px] w-full overflow-hidden rounded-xl bg-white/5">
-                {theme.type === "video" ? (
-                  <video
-                    src={theme.url}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    className="absolute inset-0 size-full object-cover"
-                  />
-                ) : (
-                  <Image
-                    src={theme.url}
-                    alt={theme.name}
-                    fill
-                    sizes="(max-width: 727px) 45vw, 318px"
-                    className="object-cover"
-                  />
-                )}
+                {/* Lưới chọn theme luôn hiện ảnh tĩnh, kể cả theme video —
+                    10 video autoplay cùng lúc trong lưới sẽ rất nặng máy.
+                    Video thật chỉ phát khi ra ngoài làm nền chính/PiP. */}
+                <Image
+                  src={theme.type === "video" ? theme.posterUrl! : theme.url}
+                  alt={theme.name}
+                  fill
+                  sizes="(max-width: 727px) 45vw, 318px"
+                  className="object-cover"
+                />
               </div>
             </div>
             <p className="truncate text-[13px] font-semibold text-white">
