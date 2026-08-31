@@ -1,14 +1,21 @@
 import { createPortal } from "react-dom";
 import { forwardRef } from "react";
 import { formatCountdown } from "@/lib/work-durations";
-import type { SessionStatus } from "@/lib/use-work-session";
 import type { PipMode } from "@/lib/use-picture-in-picture";
 import { RefreshCwIcon } from "@/icons/RefreshCwIcon";
+import { ArrowLeftUpIcon } from "@/icons/ArrowLeftUpIcon";
+import { CloseIcon } from "@/icons/CloseIcon";
+
+// Trạng thái mà cửa sổ Document PiP mirror được — khớp 3 frame Figma
+// (Chưa start / Đang chạy / Khi đến giờ nghỉ mắt). "break" không có
+// mockup PiP riêng nên PiP tự đóng khi phiên vào break (xem MainScreen).
+export type PipStatus = "ready" | "working" | "paused" | "prompt";
 
 // Panel hiện trên tab chính khi PiP đang mở — thay chỗ ChronoView, vì lúc
 // này điều khiển thật đang nằm ở cửa sổ nổi. Nhánh video (Arc) không có nút
-// Reset trong cửa sổ PiP (giới hạn của video PiP — chỉ browser tự cho
-// play/pause), nên ghi chú riêng để biết quay lại đây mà reset.
+// Reset/Snooze/Take a break trong cửa sổ PiP (giới hạn của video PiP — chỉ
+// browser tự cho play/pause), nên ghi chú riêng để biết quay lại đây điều
+// khiển đầy đủ.
 export function PipActiveNotice({
   mode,
   onClose,
@@ -37,25 +44,57 @@ export function PipActiveNotice({
   );
 }
 
+function PipHeaderButton({
+  onClick,
+  label,
+  children,
+}: {
+  onClick: () => void;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      className="flex size-10 shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/10 text-white"
+    >
+      {children}
+    </button>
+  );
+}
+
 // Nội dung render vào document của cửa sổ Document PiP qua React portal —
 // cùng cây component với MainScreen nên state (countdown, status) luôn
 // đồng bộ. Chỉ dùng cho nhánh "document" (Chrome/Edge) — nhánh "video"
-// (Arc) không có DOM riêng, nội dung của nó được vẽ bằng canvas.
+// (Arc) không có DOM riêng, nội dung của nó được vẽ bằng canvas
+// (xem draw-video-pip-frame trong use-picture-in-picture.ts).
 function PipContent({
   status,
   remainingSeconds,
   backgroundUrl,
+  onStart,
   onPauseResume,
   onReset,
+  onSnooze,
+  onTakeBreak,
+  onRestore,
+  onClose,
 }: {
-  status: Extract<SessionStatus, "working" | "paused">;
+  status: PipStatus;
   remainingSeconds: number;
   backgroundUrl: string;
+  onStart: () => void;
   onPauseResume: () => void;
   onReset: () => void;
+  onSnooze: () => void;
+  onTakeBreak: () => void;
+  onRestore: () => void;
+  onClose: () => void;
 }) {
   return (
-    <div className="relative flex size-full min-h-screen flex-col items-center justify-center gap-4 overflow-hidden bg-[#14101f]">
+    <div className="relative flex size-full min-h-screen flex-col items-center justify-center gap-8 overflow-hidden bg-[#14101f] px-6 py-4">
       {/* next/image không dùng được — nội dung này render vào document của
           cửa sổ PiP (khác document/window với trang chính) qua portal. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -65,28 +104,86 @@ function PipContent({
         className="absolute inset-0 size-full object-cover"
       />
       <div className="absolute inset-0 bg-black/40" />
-      <div className="relative flex flex-col items-center gap-4">
-        <p className="text-[72px] font-black leading-none text-white">
-          {formatCountdown(remainingSeconds)}
-        </p>
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={onPauseResume}
-            className="rounded-full bg-[#5e3bee] px-8 py-2.5 text-[14px] font-medium text-white"
-          >
-            {status === "paused" ? "Continue" : "Pause"}
-          </button>
-          <button
-            type="button"
-            onClick={onReset}
-            aria-label="Reset"
-            className="flex size-9 items-center justify-center rounded-full border border-white/40 bg-white/20 text-white hover:bg-white/30"
-          >
-            <RefreshCwIcon size={14} />
-          </button>
-        </div>
+
+      <div className="relative flex w-full items-center justify-between">
+        <PipHeaderButton onClick={onRestore} label="Back to Zenzy tab">
+          <ArrowLeftUpIcon size={24} />
+        </PipHeaderButton>
+        <p className="flex-1 text-center text-[16px] text-white">Zenzy</p>
+        <PipHeaderButton onClick={onClose} label="Close Picture-in-Picture">
+          <CloseIcon size={24} />
+        </PipHeaderButton>
       </div>
+
+      {status === "prompt" ? (
+        <div className="relative flex flex-col items-center gap-3">
+          <div className="flex size-16 items-center justify-center rounded-[32px] border border-white/20 bg-white/[0.08] shadow-[0_8px_24px_rgba(94,59,238,0.2)] backdrop-blur-[12px]">
+            <p className="text-[34px]">👀</p>
+          </div>
+          <p className="text-center text-[24px] font-bold text-white">
+            Time to rest your eyes
+          </p>
+          <div className="flex h-[47px] w-full items-center gap-4">
+            <button
+              type="button"
+              onClick={onSnooze}
+              className="flex flex-1 items-center justify-center rounded-full border border-white/20 bg-white/10 px-6 text-[16px] font-medium text-white"
+            >
+              Snooze 5 min
+            </button>
+            <button
+              type="button"
+              onClick={onTakeBreak}
+              className="flex flex-1 items-center justify-center rounded-full bg-[#5e3bee] px-6 text-[16px] font-semibold text-white"
+            >
+              Take a break
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="relative flex flex-col items-center gap-4">
+          <p className="text-[64px] font-black leading-none text-white">
+            {formatCountdown(remainingSeconds)}
+          </p>
+          <div className="flex items-center gap-4">
+            {status === "ready" && (
+              <button
+                type="button"
+                onClick={onStart}
+                className="rounded-full bg-[#5e3bee] px-9 py-3 text-[16px] font-bold text-white"
+              >
+                Start working
+              </button>
+            )}
+            {status === "working" && (
+              <button
+                type="button"
+                onClick={onPauseResume}
+                className="rounded-full bg-[#c2b4fb] px-9 py-3 text-[16px] font-bold text-[#5e3bee]"
+              >
+                Pause
+              </button>
+            )}
+            {status === "paused" && (
+              <button
+                type="button"
+                onClick={onPauseResume}
+                className="rounded-full bg-[#5e3bee] px-9 py-3 text-[16px] font-bold text-white"
+              >
+                Continue
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onReset}
+              aria-label="Reset"
+              className="flex size-11 items-center justify-center rounded-full bg-black/25"
+            >
+              <RefreshCwIcon size={16} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -96,11 +193,16 @@ export function PipPortal({
   ...contentProps
 }: {
   pipWindow: Window;
-  status: Extract<SessionStatus, "working" | "paused">;
+  status: PipStatus;
   remainingSeconds: number;
   backgroundUrl: string;
+  onStart: () => void;
   onPauseResume: () => void;
   onReset: () => void;
+  onSnooze: () => void;
+  onTakeBreak: () => void;
+  onRestore: () => void;
+  onClose: () => void;
 }) {
   return createPortal(<PipContent {...contentProps} />, pipWindow.document.body);
 }

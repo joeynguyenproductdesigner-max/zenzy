@@ -17,7 +17,25 @@ import { WorkEndedPrompt } from "./WorkEndedPrompt";
 import { BreakView } from "./BreakView";
 import { SessionRecoveryPrompt } from "./SessionRecoveryPrompt";
 import { HudControls } from "./HudControls";
-import { PipActiveNotice, PipPortal, HiddenVideoPipSource } from "./PictureInPicture";
+import {
+  PipActiveNotice,
+  PipPortal,
+  HiddenVideoPipSource,
+  type PipStatus,
+} from "./PictureInPicture";
+import type { SessionStatus } from "@/lib/use-work-session";
+
+// PiP mirror 4 trạng thái có mockup Figma (ready/working/paused/prompt) —
+// "break"/"recovery" không có mockup PiP nên tự đóng khi phiên vào 2
+// trạng thái này (xem effect closePip bên dưới).
+function isPipStatus(status: SessionStatus): status is PipStatus {
+  return (
+    status === "ready" ||
+    status === "working" ||
+    status === "paused" ||
+    status === "prompt"
+  );
+}
 
 export function MainScreen() {
   const [themeId, setThemeId] = useLocalStorage<string>(
@@ -69,6 +87,7 @@ export function MainScreen() {
     onTakeBreak: session.takeBreak,
   });
 
+  const pipStatus = isPipStatus(session.status) ? session.status : "ready";
   const {
     supported: pipSupported,
     mode: pipMode,
@@ -77,17 +96,18 @@ export function MainScreen() {
     canvasRef: pipCanvasRef,
     openPip,
     closePip,
+    restorePip,
   } = usePictureInPicture({
-    status: session.status === "paused" ? "paused" : "working",
+    status: pipStatus,
     remainingSeconds: session.remainingSeconds,
     onPause: session.pause,
     onResume: session.resume,
   });
-  // PiP chỉ hiển thị countdown working/paused — session rời 2 trạng thái
-  // này (hết giờ, reset, vào break...) thì đóng PiP luôn, tránh cửa sổ nổi
-  // hiện nội dung không còn khớp trạng thái thật.
+  // PiP mirror ready/working/paused/prompt khi đã mở (đúng 4 frame Figma) —
+  // chỉ đóng khi phiên rời sang trạng thái không có mockup PiP (break,
+  // recovery), tránh cửa sổ nổi hiện nội dung không có thiết kế tương ứng.
   useEffect(() => {
-    if (session.status !== "working" && session.status !== "paused") {
+    if (!isPipStatus(session.status)) {
       closePip();
     }
   }, [session.status, closePip]);
@@ -152,11 +172,16 @@ export function MainScreen() {
           />
         )}
 
-        {(session.status === "ready" ||
-          session.status === "working" ||
-          session.status === "paused") &&
+        {isPipStatus(session.status) &&
           (pipMode ? (
             <PipActiveNotice mode={pipMode} onClose={closePip} />
+          ) : session.status === "prompt" ? (
+            <WorkEndedPrompt
+              name={name || undefined}
+              workMinutes={session.workMinutes}
+              onSnooze={session.snooze}
+              onTakeBreak={session.takeBreak}
+            />
           ) : (
             <ChronoView
               status={session.status}
@@ -171,15 +196,6 @@ export function MainScreen() {
               onOpenPip={openPip}
             />
           ))}
-
-        {session.status === "prompt" && (
-          <WorkEndedPrompt
-            name={name || undefined}
-            workMinutes={session.workMinutes}
-            onSnooze={session.snooze}
-            onTakeBreak={session.takeBreak}
-          />
-        )}
 
         {session.status === "break" && (
           <BreakView
@@ -259,17 +275,21 @@ export function MainScreen() {
         }}
       />
 
-      {pipWindow &&
-        (session.status === "working" || session.status === "paused") && (
-          <PipPortal
-            pipWindow={pipWindow}
-            status={session.status}
-            remainingSeconds={session.remainingSeconds}
-            backgroundUrl={background.url}
-            onPauseResume={session.status === "paused" ? session.resume : session.pause}
-            onReset={session.reset}
-          />
-        )}
+      {pipWindow && isPipStatus(session.status) && (
+        <PipPortal
+          pipWindow={pipWindow}
+          status={session.status}
+          remainingSeconds={session.remainingSeconds}
+          backgroundUrl={background.url}
+          onStart={session.start}
+          onPauseResume={session.status === "paused" ? session.resume : session.pause}
+          onReset={session.reset}
+          onSnooze={session.snooze}
+          onTakeBreak={session.takeBreak}
+          onRestore={restorePip}
+          onClose={closePip}
+        />
+      )}
 
       {/* Luôn mounted (không chỉ khi nhánh video PiP đang mở) để có ref sẵn
           sàng ngay trong lúc xử lý click mở PiP — xem usePictureInPicture. */}
