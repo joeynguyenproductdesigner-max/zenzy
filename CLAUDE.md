@@ -53,7 +53,7 @@ Khi build từng màn hình, **dùng link riêng (copy link to selection) của 
 ## Các quyết định kỹ thuật quan trọng — không tự ý đổi khi code
 
 1. **Web Push Notification KHÔNG cần server.** Chỉ dùng `Notification.requestPermission()` + Service Worker + `registration.showNotification()`. Không dựng push server, không cần VAPID key.
-2. **PiP dùng Document Picture-in-Picture API** (`document.documentPictureInPicture`). Chỉ Chrome/Edge hỗ trợ — nếu trình duyệt không hỗ trợ, ẩn icon PiP, không hiện lỗi.
+2. **PiP dùng Document Picture-in-Picture API** (`document.documentPictureInPicture`) cho Chrome/Edge — cửa sổ nổi thật, custom React/DOM, đúng Figma (có Pause/Reset). **Arc** cũng cần PiP nhưng Document PiP trên Arc chỉ là overlay dính theo tab (biến mất khi đổi tab) — dùng nhánh rút gọn: vẽ countdown lên canvas → `captureStream()` → `<video>.requestPictureInPicture()`, chỉ Play/Pause qua `mediaSession` (không có Reset trong cửa sổ, reset ở tab chính). Chọn nhánh **một lần duy nhất trong handler click** mở PiP — không auto-trigger, không chạy 2 nhánh song song (nguyên nhân chính khiến 6 lần thử Sprint 7 trước bất ổn, xem `git log` commit `a8f0525`). Trình duyệt không hỗ trợ cả hai → ẩn icon PiP, không hiện lỗi.
 3. **Session recovery (S5):** lưu timestamp đóng tab vào `localStorage`. Nếu mở lại sau > **2 giờ**, tự ẩn nút "Resume session", chỉ hiện "Start new".
 4. **Fallback Safari/iOS:** không có action button trong notification, không có PiP → dùng nhấp nháy `document.title` làm tín hiệu dự phòng, cảnh báo giới hạn ngay từ Main screen khi phát hiện Safari/iOS.
 5. **Icon "maximize"** trên Main/S4 → dùng Fullscreen API chuẩn (`document.requestFullscreen()`).
