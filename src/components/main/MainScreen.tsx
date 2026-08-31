@@ -17,12 +17,7 @@ import { WorkEndedPrompt } from "./WorkEndedPrompt";
 import { BreakView } from "./BreakView";
 import { SessionRecoveryPrompt } from "./SessionRecoveryPrompt";
 import { HudControls } from "./HudControls";
-import {
-  PipActiveNotice,
-  PipPortal,
-  HiddenVideoPipSource,
-  type PipStatus,
-} from "./PictureInPicture";
+import { PipActiveNotice, PipPortal, type PipStatus } from "./PictureInPicture";
 import type { SessionStatus } from "@/lib/use-work-session";
 
 // PiP mirror 4 trạng thái có mockup Figma (ready/working/paused/prompt) —
@@ -87,22 +82,14 @@ export function MainScreen() {
     onTakeBreak: session.takeBreak,
   });
 
-  const pipStatus = isPipStatus(session.status) ? session.status : "ready";
   const {
     supported: pipSupported,
     mode: pipMode,
     pipWindow,
-    videoRef: pipVideoRef,
-    canvasRef: pipCanvasRef,
     openPip,
     closePip,
     restorePip,
-  } = usePictureInPicture({
-    status: pipStatus,
-    remainingSeconds: session.remainingSeconds,
-    onPause: session.pause,
-    onResume: session.resume,
-  });
+  } = usePictureInPicture();
   // PiP mirror ready/working/paused/prompt khi đã mở (đúng 4 frame Figma) —
   // chỉ đóng khi phiên rời sang trạng thái không có mockup PiP (break,
   // recovery), tránh cửa sổ nổi hiện nội dung không có thiết kế tương ứng.
@@ -174,7 +161,7 @@ export function MainScreen() {
 
         {isPipStatus(session.status) &&
           (pipMode ? (
-            <PipActiveNotice mode={pipMode} onClose={closePip} />
+            <PipActiveNotice onClose={closePip} />
           ) : session.status === "prompt" ? (
             <WorkEndedPrompt
               name={name || undefined}
@@ -290,10 +277,6 @@ export function MainScreen() {
           onClose={closePip}
         />
       )}
-
-      {/* Luôn mounted (không chỉ khi nhánh video PiP đang mở) để có ref sẵn
-          sàng ngay trong lúc xử lý click mở PiP — xem usePictureInPicture. */}
-      <HiddenVideoPipSource ref={pipVideoRef} canvasRef={pipCanvasRef} />
     </div>
   );
 }

@@ -1,7 +1,5 @@
 import { createPortal } from "react-dom";
-import { forwardRef } from "react";
 import { formatCountdown } from "@/lib/work-durations";
-import type { PipMode } from "@/lib/use-picture-in-picture";
 import { RefreshCwIcon } from "@/icons/RefreshCwIcon";
 import { ArrowLeftUpIcon } from "@/icons/ArrowLeftUpIcon";
 import { CloseIcon } from "@/icons/CloseIcon";
@@ -12,26 +10,15 @@ import { CloseIcon } from "@/icons/CloseIcon";
 export type PipStatus = "ready" | "working" | "paused" | "prompt";
 
 // Panel hiện trên tab chính khi PiP đang mở — thay chỗ ChronoView, vì lúc
-// này điều khiển thật đang nằm ở cửa sổ nổi. Nhánh video (Arc) không có nút
-// Reset/Snooze/Take a break trong cửa sổ PiP (giới hạn của video PiP — chỉ
-// browser tự cho play/pause), nên ghi chú riêng để biết quay lại đây điều
-// khiển đầy đủ.
-export function PipActiveNotice({
-  mode,
-  onClose,
-}: {
-  mode: PipMode;
-  onClose: () => void;
-}) {
+// này điều khiển thật đang nằm ở cửa sổ nổi.
+export function PipActiveNotice({ onClose }: { onClose: () => void }) {
   return (
     <div className="flex w-[640px] flex-col items-center gap-6 text-center text-white">
       <p className="text-[32px] font-semibold">
         Zenzy is running in Picture-in-Picture
       </p>
       <p className="text-[16px] text-white/80">
-        {mode === "video"
-          ? "Close the floating window to reset or control it from this tab again."
-          : "Close the floating window to control it from this tab again."}
+        Close the floating window to control it from this tab again.
       </p>
       <button
         type="button"
@@ -67,9 +54,8 @@ function PipHeaderButton({
 
 // Nội dung render vào document của cửa sổ Document PiP qua React portal —
 // cùng cây component với MainScreen nên state (countdown, status) luôn
-// đồng bộ. Chỉ dùng cho nhánh "document" (Chrome/Edge) — nhánh "video"
-// (Arc) không có DOM riêng, nội dung của nó được vẽ bằng canvas
-// (xem draw-video-pip-frame trong use-picture-in-picture.ts).
+// đồng bộ. Chỉ Chrome/Edge dùng được PiP (CLAUDE.md quyết định #2) — Arc
+// không có nút PiP (xem use-picture-in-picture.ts).
 function PipContent({
   status,
   remainingSeconds,
@@ -206,18 +192,3 @@ export function PipPortal({
 }) {
   return createPortal(<PipContent {...contentProps} />, pipWindow.document.body);
 }
-
-// Canvas + video ẩn dùng làm nguồn cho nhánh video PiP (Arc) — luôn mounted
-// (không chỉ khi mode === "video") để usePictureInPicture có ref sẵn sàng
-// ngay trong lúc xử lý click mở PiP, không phải đợi render lại trước.
-export const HiddenVideoPipSource = forwardRef<
-  HTMLVideoElement,
-  { canvasRef: React.RefObject<HTMLCanvasElement | null> }
->(function HiddenVideoPipSource({ canvasRef }, videoRef) {
-  return (
-    <div aria-hidden className="absolute size-0 overflow-hidden">
-      <canvas ref={canvasRef} width={360} height={230} />
-      <video ref={videoRef} playsInline muted />
-    </div>
-  );
-});
