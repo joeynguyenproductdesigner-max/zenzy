@@ -90,14 +90,14 @@ function PipContent({
             <button
               type="button"
               onClick={onSnooze}
-              className="flex flex-1 items-center justify-center rounded-full border border-white/20 bg-white/10 px-6 text-[14px] font-medium text-white"
+              className="flex flex-1 items-center justify-center whitespace-nowrap rounded-full border border-white/20 bg-white/10 px-6 text-[14px] font-medium text-white"
             >
               Snooze 5 min
             </button>
             <button
               type="button"
               onClick={onTakeBreak}
-              className="flex flex-1 items-center justify-center rounded-full bg-[#5e3bee] px-6 text-[14px] font-medium text-white"
+              className="flex flex-1 items-center justify-center whitespace-nowrap rounded-full bg-[#5e3bee] px-6 text-[14px] font-medium text-white"
             >
               Take a break
             </button>
