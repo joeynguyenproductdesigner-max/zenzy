@@ -65,22 +65,19 @@ export function usePictureInPicture() {
     };
     check();
 
-    // Arc inject CSS var dùng để detect (--arc-palette-title) một lúc sau
-    // khi trang load, không phải ngay lúc mount — bản Sprint 7 trước cũng
-    // gặp đúng race này. Thay vì đoán 1 mốc thời gian cố định (dễ sai nếu
-    // Arc chậm hơn dự đoán), theo dõi trực tiếp lúc <head>/<html> đổi —
-    // đúng lúc Arc chèn CSS — và re-check ngay khi đó. Chỉ theo dõi trong
-    // 5s đầu sau mount rồi ngắt hẳn, không phải observer chạy nền vô thời hạn.
-    const observer = new MutationObserver(check);
-    observer.observe(document.head, { childList: true, subtree: true });
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["style", "class"],
-    });
-    const stopTimer = setTimeout(() => observer.disconnect(), 5000);
+    // Arc set CSS var dùng để detect (--arc-palette-title) một lúc sau khi
+    // trang load, không phải ngay lúc mount — đã xác nhận thực tế trên Arc
+    // (biến có tồn tại khi kiểm tra tay ngay sau đó, nhưng check đầu tiên
+    // lúc mount thì chưa). Từng thử MutationObserver theo dõi DOM đổi
+    // nhưng không bắt được — Arc nhiều khả năng set biến này ở tầng nội bộ
+    // trình duyệt, không qua thao tác DOM nào quan sát được. Poll định kỳ
+    // thay vì chờ mutation: không phụ thuộc CÁCH Arc set biến, chỉ cần đọc
+    // lại giá trị. Bounded trong 3s đầu, không phải vòng lặp chạy nền mãi.
+    const interval = setInterval(check, 200);
+    const stopTimer = setTimeout(() => clearInterval(interval), 3000);
 
     return () => {
-      observer.disconnect();
+      clearInterval(interval);
       clearTimeout(stopTimer);
     };
   }, []);

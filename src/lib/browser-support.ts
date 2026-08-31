@@ -22,14 +22,14 @@ export function isSafariOrIOS(): boolean {
 }
 
 // Arc tự nhận là Chrome qua User-Agent (không có cách detect chính thức),
-// nên dò qua CSS custom property riêng mà Arc tự inject vào mọi trang
+// nên dò qua CSS custom property riêng mà Arc tự set vào mọi trang
 // (--arc-palette-title) — kỹ thuật cộng đồng hay dùng, không phải API
 // chính thức, có thể lỗi nếu Arc đổi cách implement sau này.
-// Gọi hàm này on-demand (lúc user bấm nút PiP), KHÔNG lúc mount — Arc chỉ
-// inject var này sau khi trang đã load một lúc, nên detect lúc mount từng
-// cần retry theo thời gian (nguồn bất ổn ở các lần thử Sprint 7 trước).
-// Lúc user đã bấm nút thì trang chắc chắn đã load xong lâu rồi, không cần
-// retry nữa.
+// Biến này không có ngay lúc trang vừa mount — gọi hàm 1 lần lúc đó sẽ
+// sai. use-picture-in-picture.ts gọi hàm này qua poll định kỳ trong vài
+// giây đầu (không phải MutationObserver — đã thử, không bắt được, nhiều
+// khả năng Arc set biến ở tầng nội bộ trình duyệt chứ không qua thao tác
+// DOM quan sát được) để chắc chắn bắt đúng thời điểm biến xuất hiện.
 export function isArcBrowser(): boolean {
   if (typeof window === "undefined" || typeof document === "undefined") {
     return false;
