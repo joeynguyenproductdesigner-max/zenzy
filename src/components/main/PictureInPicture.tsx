@@ -109,7 +109,6 @@ function PipContent({
         <PipHeaderButton onClick={onRestore} label="Back to Zenzy tab">
           <ArrowLeftUpIcon size={24} />
         </PipHeaderButton>
-        <p className="flex-1 text-center text-[16px] text-white">Zenzy</p>
         <PipHeaderButton onClick={onClose} label="Close Picture-in-Picture">
           <CloseIcon size={24} />
         </PipHeaderButton>
