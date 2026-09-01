@@ -25,9 +25,28 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const SITE_URL = "https://zenzy-app.vercel.app";
+const TITLE = "Zenzy — Zen for your eyes";
+const DESCRIPTION =
+  "Nghỉ mắt, đúng lúc, đúng cách. Deep work timer kết hợp nhắc nghỉ mắt có căn cứ khoa học (AOA) và trải nghiệm thư giãn thẩm mỹ — dành cho dân văn phòng.";
+
 export const metadata: Metadata = {
-  title: "Zenzy — Zen for your eyes",
-  description: "Nghỉ mắt, đúng lúc, đúng cách",
+  metadataBase: new URL(SITE_URL),
+  title: TITLE,
+  description: DESCRIPTION,
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: SITE_URL,
+    siteName: "Zenzy",
+    type: "website",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
