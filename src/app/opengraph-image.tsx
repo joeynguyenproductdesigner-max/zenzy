@@ -47,7 +47,9 @@ export default async function Image() {
             position: "relative",
             display: "flex",
             flexDirection: "column",
+            alignItems: "center",
             justifyContent: "center",
+            width: "100%",
             height: "100%",
             padding: "0 90px",
           }}
@@ -59,6 +61,7 @@ export default async function Image() {
               fontWeight: 900,
               color: "white",
               letterSpacing: "-2px",
+              textAlign: "center",
             }}
           >
             Zenzy
@@ -69,6 +72,7 @@ export default async function Image() {
               fontSize: 36,
               color: "rgba(255,255,255,0.85)",
               marginTop: 12,
+              textAlign: "center",
             }}
           >
             Zen for your eyes
@@ -80,6 +84,7 @@ export default async function Image() {
               fontStyle: "italic",
               color: "rgba(255,255,255,0.7)",
               marginTop: 36,
+              textAlign: "center",
             }}
           >
             Nghỉ mắt, đúng lúc, đúng cách.
