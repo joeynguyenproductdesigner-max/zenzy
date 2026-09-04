@@ -33,8 +33,9 @@
 
 Toàn bộ URL ảnh/âm thanh/video (Cloudinary) đã có sẵn trong file `media-config.ts` đi kèm cùng thư mục project này. Khi code bất kỳ phần nào cần media (Themes, Sounds/Music, video S4), **import từ file này**, không tự bịa hoặc hard-code URL rải rác trong component.
 
-- Toàn bộ URL đã có `f_auto,q_auto` để Cloudinary tự tối ưu định dạng/dung lượng theo trình duyệt — không cần thêm transform khác trừ khi có lý do cụ thể.
-- Video kinetic visual (S4) chỉ có 1 URL duy nhất (`kineticVisual.url`, định dạng mp4 gốc) — nhờ `f_auto`, Cloudinary tự phục vụ đúng định dạng theo trình duyệt, **không cần** tự tạo thêm bản `.webm` riêng như ghi chú kỹ thuật ban đầu ở Giai đoạn 6.
+- Toàn bộ URL **ẢNH** đã có `f_auto,q_auto` để Cloudinary tự tối ưu định dạng/dung lượng theo trình duyệt — không cần thêm transform khác trừ khi có lý do cụ thể.
+- ⚠️ **URL VIDEO (.mp4) KHÔNG BAO GIỜ được thêm `f_auto,q_auto`** — khiến video không phát được (màn hình xám), xác nhận với Joey 28/08/2026 (kineticVisual) rồi lặp lại y hệt trên 9 theme video 31/08/2026 (vì fix trước đó bị một commit sau ghi đè, không phải do sửa lại — xem `git log -- media-config.ts`). Đã có `npm run build` tự chạy `scripts/check-media-config.js` chặn lỗi này tái diễn (build fail ngay nếu ai thêm `f_auto` vào url video) — xem cảnh báo đầu `media-config.ts`.
+- Video kinetic visual (S4) chỉ có 1 URL duy nhất (`kineticVisual.url`, định dạng mp4 gốc, không transform), **không cần** tự tạo thêm bản `.webm` riêng như ghi chú kỹ thuật ban đầu ở Giai đoạn 6.
 - 9 ảnh Themes hiện tại theo hướng **anime/cartoon** (văn phòng, nội thất nhà, phong cảnh mặt trăng) — đã xác nhận với Joey (25/08/2026), khác với mô tả gốc ở BRD/PRD (rừng, biển, mưa, quán cà phê). Đây là quyết định có chủ đích, không phải lỗi.
 
 ## Figma
@@ -49,6 +50,8 @@ Khi build từng màn hình, **dùng link riêng (copy link to selection) của 
 - **Hosting:** Vercel — subdomain miễn phí (chưa cần domain riêng)
 - **Backend/Database:** KHÔNG CÓ — không đăng nhập, mọi state lưu ở `localStorage`
 - **Media (audio/video):** Cloudinary (free tier) — xem mục "Media Assets" ở trên, nhúng qua `media-config.ts`
+
+**⚠️ Deploy: KHÔNG bao giờ chạy `vercel --prod` (hay `vercel deploy`) thủ công từ máy local.** Project đã nối GitHub — mọi commit push lên `main` được Vercel tự build & deploy production. Lệnh CLI thủ công upload thẳng code trong thư mục máy tại thời điểm chạy, bỏ qua GitHub — nếu máy đó đang chậm hơn `origin/main` (rất dễ xảy ra), nó sẽ **ghi đè production về bản cũ hơn** dù GitHub vẫn đúng (đã xảy ra thật 03/09/2026, khiến mọi thay đổi cỡ chữ + theme video "biến mất" khỏi production dù code trên GitHub vẫn đủ). Cách deploy đúng duy nhất: `git push origin main`, không cần chạy `vercel` thủ công.
 
 ## Các quyết định kỹ thuật quan trọng — không tự ý đổi khi code
 

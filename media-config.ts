@@ -3,8 +3,15 @@
 // Theo nguyên tắc đã chốt ở CLAUDE.md: không hard-code link rải rác trong code,
 // mọi component chỉ import từ file này.
 //
-// Mọi URL đều có f_auto,q_auto để Cloudinary tự chọn định dạng + mức nén tối ưu
-// theo trình duyệt người dùng, giúp tiết kiệm bandwidth gói Free.
+// Mọi URL ẢNH đều có f_auto,q_auto để Cloudinary tự chọn định dạng + mức nén
+// tối ưu theo trình duyệt người dùng, giúp tiết kiệm bandwidth gói Free.
+//
+// ⚠️ URL VIDEO (.mp4) KHÔNG BAO GIỜ được thêm f_auto,q_auto — đã gây lỗi
+// video không phát được (màn hình xám) 2 lần: kineticVisual (28/08/2026,
+// xác nhận với Joey) và 9 theme video (31/08/2026, lặp lại vì fix trước
+// không được commit). `npm run build` tự chạy scripts/check-media-config.js
+// (xem package.json "prebuild") để chặn lỗi này tái diễn — sửa file này rồi
+// build/deploy fail thì kiểm tra lại đúng chỗ đó trước.
 
 export interface MediaItem {
   id: string;
@@ -224,9 +231,10 @@ export const themeBackgrounds: MediaItem[] = [
 
 // ============================================
 // KINETIC VISUAL — video màn hình nghỉ mắt (S4)
-// Chỉ cần 1 URL gốc nhờ f_auto: Cloudinary tự trả về định dạng phù hợp
-// (webm cho trình duyệt hỗ trợ, mp4 cho trình duyệt còn lại) từ CÙNG 1 link,
-// nên không cần tự upload/convert 2 file riêng như note ban đầu ở Giai đoạn 6.
+// URL gốc, KHÔNG f_auto,q_auto (xem cảnh báo đầu file) — đã xác nhận với
+// Joey (28/08/2026) rằng f_auto trên link video khiến video không phát
+// được (cả tab chính lẫn PiP), nên không cần tự upload/convert 2 file riêng
+// như note ban đầu ở Giai đoạn 6.
 // ============================================
 export const kineticVisual = {
   url: "https://res.cloudinary.com/suha2h16/video/upload/v1787647257/246243_1.mp4",
